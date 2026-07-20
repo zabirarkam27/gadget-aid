@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: gadgetlight --default, gadgetdark --prefersdark;
+}
+
+/* GadgetAid — Light theme
+   A clean, trustworthy "repair-shop" palette: deep teal-blue as the
+   brand color (from the existing logo gradient), warm amber as the
+   accent for calls-to-action, on a crisp neutral-slate surface. */
+@plugin "daisyui/theme" {
+  name: "gadgetlight";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  --color-base-100: #ffffff;
+  --color-base-200: #f1f5f9;
+  --color-base-300: #e2e8f0;
+  --color-base-content: #0f172a;
+
+  --color-primary: #00618f;
+  --color-primary-content: #ffffff;
+
+  --color-secondary: #0891b2;
+  --color-secondary-content: #ffffff;
+
+  --color-accent: #d97706;
+  --color-accent-content: #fffbeb;
+
+  --color-neutral: #1e293b;
+  --color-neutral-content: #f1f5f9;
+
+  --color-info: #0284c7;
+  --color-info-content: #f0f9ff;
+
+  --color-success: #16a34a;
+  --color-success-content: #f0fdf4;
+
+  --color-warning: #d97706;
+  --color-warning-content: #fffbeb;
+
+  --color-error: #dc2626;
+  --color-error-content: #fef2f2;
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* GadgetAid — Dark theme
+   Same brand hue family, lifted in lightness so it stays legible
+   and vivid on a dark slate surface instead of just inverting. */
+@plugin "daisyui/theme" {
+  name: "gadgetdark";
+  default: false;
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: #0f172a;
+  --color-base-200: #1a2436;
+  --color-base-300: #263349;
+  --color-base-content: #e2e8f0;
+
+  --color-primary: #38bdf8;
+  --color-primary-content: #05202f;
+
+  --color-secondary: #2dd4bf;
+  --color-secondary-content: #042b27;
+
+  --color-accent: #fbbf24;
+  --color-accent-content: #1c1400;
+
+  --color-neutral: #cbd5e1;
+  --color-neutral-content: #0f172a;
+
+  --color-info: #38bdf8;
+  --color-info-content: #05202f;
+
+  --color-success: #4ade80;
+  --color-success-content: #052e13;
+
+  --color-warning: #fbbf24;
+  --color-warning-content: #1c1400;
+
+  --color-error: #f87171;
+  --color-error-content: #2b0a0a;
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-base-100);
+    color: var(--color-base-content);
+  }
+}

@@ -1,0 +1,27 @@
+gadget-aid-client-fixed.zip
+gadget-aid-server-fixed.zip
+# Zip files
+*.zip
+
+# Client
+gadget-aid-client/node_modules/
+gadget-aid-client/dist/
+gadget-aid-client/.firebase/
+gadget-aid-client/.env
+gadget-aid-client/.env.local
+gadget-aid-client/.env.production
+
+# Server
+gadget-aid-server/node_modules/
+gadget-aid-server/.env
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
