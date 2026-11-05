@@ -4,6 +4,11 @@ export const readJson = async response => {
     const messages = {
       DUPLICATE_BOOKING:"You already have a booking for this service and date. Check My bookings.",
       INVALID_SERVICE_SNAPSHOT:"The service details have changed. Reload the service and try again.",
+      STALE_CONVERSATION:"The conversation changed. Refresh and retry.",
+      PARTICIPANT_UNAVAILABLE:"The other booking participant is unavailable.",
+      MESSAGE_REFERENCE_CONFLICT:"This message reference was used already. Edit the message before sending again.",
+      MESSAGE_RATE_LIMIT:"Wait a few seconds before sending another message.",
+      CONVERSATION_LIMIT:"This conversation reached its 200-message limit.",
       STALE_WORKFLOW:"This repair changed. Refresh before trying again.",
       STALE_QUOTATION:"This quotation changed. Refresh before deciding.",
       INVALID_TRANSITION:"Complete the earlier repair stages and customer approval first.",

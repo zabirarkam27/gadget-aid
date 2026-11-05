@@ -41,7 +41,7 @@ const createFixture=({seedBooking=false}={})=>{
   const service={_id:new ObjectId(ids.service),...serviceFields,providerUid:users.provider.uid,providerEmail:users.provider.email,providerName:users.provider.name,providerPhoto:null,createdAt:fixedTime,updatedAt:fixedTime};
   const otherService={...service,_id:new ObjectId(ids.otherService),name:"Phone display repair",providerUid:users.other.uid,providerEmail:users.other.email,providerName:users.other.name};
   const booking={_id:new ObjectId(ids.booking),serviceId:ids.service,serviceName:service.name,serviceImage:service.image,providerUid:users.provider.uid,providerEmail:users.provider.email,providerName:users.provider.name,userUid:users.customer.uid,userEmail:users.customer.email,userName:users.customer.name,date:"2026-11-06",instruction:"The laptop does not start. Please check the power connection.",price:85,status:"pending",createdAt:fixedTime};
-  const db={services:new MemoryCollection([service,otherService]),bookings:new MemoryCollection(seedBooking ? [booking] : [])};
+  const db={notifications:new MemoryCollection(),threads:new MemoryCollection(),services:new MemoryCollection([service,otherService]),bookings:new MemoryCollection(seedBooking ? [booking] : [])};
   return {db,service,otherService,booking};
 };
 const verifyIdToken=async token=>{if(!users[token])throw new Error("invalid test token");return users[token];};

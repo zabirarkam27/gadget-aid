@@ -1,9 +1,10 @@
+const {createCommunication} = require("./communication");
 const {createWorkflow,initialRepair} = require("./workflow");
 const express = require("express");
 const cors = require("cors");
 const {HttpError,fail,checkKeys,idValue,priceValue,photoUrl,validateService,todayInDhaka,validDate,serviceOwner,ownerQuery,customerQuery,serializeService,serializeBooking,bookingId} = require("./domain");
 
-const createApp = ({ getCollections, verifyIdToken, origins = ["http://localhost:5173"], clock = () => new Date(), logger = {error(){}} }) => {
+const createApp = ({ getCollections, verifyIdToken, origins = ["http://localhost:5173"], clock = () => new Date(), logger = {error(){}}, sendEmail = null, jobSecret = "", appUrl = "http://localhost:5173" }) => {
   const app = express();
   app.disable("x-powered-by");
   app.use(cors({origin:origins}));
@@ -116,6 +117,13 @@ const createApp = ({ getCollections, verifyIdToken, origins = ["http://localhost
   app.post("/bookings/:id/quotations/:quoteId/questions",authenticated,workflow.clarification);
   app.post("/bookings/:id/quotations/:quoteId/questions/:questionId/answer",authenticated,workflow.answer);
   app.post("/bookings/:id/cancel",authenticated,workflow.cancel);
+  const communication=createCommunication({collections,clock,sendEmail,jobSecret,appUrl});
+  app.get("/notifications",authenticated,communication.notifications);
+  app.post("/notifications/read",authenticated,communication.markNotifications);
+  app.get("/bookings/:id/messages",authenticated,communication.readThread);
+  app.post("/bookings/:id/messages",authenticated,communication.sendMessage);
+  app.post("/bookings/:id/messages/read",authenticated,communication.markThread);
+  app.get("/internal/jobs/email",communication.deliver);
   app.use((req,res)=>res.status(404).json({message:"Endpoint not found.",code:"NOT_FOUND"}));
   app.use((error,req,res,next)=>{
     if(res.headersSent)return next(error);

@@ -1,3 +1,4 @@
+import Notifications from "../pages/Notifications";
 import RepairDetails from "../pages/RepairDetails";
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <Error />,
     children: [
+      {path:"/notifications",element:<PrivateRoutes><Notifications /></PrivateRoutes>},
       {path:"/bookings/:id",element:<PrivateRoutes><RepairDetails /></PrivateRoutes>},
       { path: "/forgot-password", element: <ForgotPassword /> },
       {

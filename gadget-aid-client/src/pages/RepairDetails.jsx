@@ -1,3 +1,4 @@
+import BookingConversation from "../components/dashboard/BookingConversation";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { API_URL } from "../utils/api";
@@ -599,6 +600,7 @@ const RepairWorkspace = ({ id }) => {
                 )}
               </div>
               <div className="space-y-6">
+                <BookingConversation bookingId={id} />
                 <Panel title="Repair timeline">
                   {!booking.repair.events.length ? (
                     <p className="ga-muted">

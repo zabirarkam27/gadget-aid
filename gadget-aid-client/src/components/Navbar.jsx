@@ -1,3 +1,4 @@
+import { NotificationsContext } from "../provider/NotificationsContext";
 import { useContext, useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiMenu, FiArrowUpRight, FiLogOut, FiChevronDown } from "react-icons/fi";
@@ -9,11 +10,12 @@ import Brand from "./ui/Brand";
 import Avatar from "./ui/Avatar";
 
 const publicLinks = [["/", "Home"], ["/services", "Services"], ["/contact-us", "Contact"]];
-const accountLinks = [["/booked-services", "My bookings"], ["/add-service", "Add a service"], ["/manage-services", "My services"], ["/service-to-do", "Work queue"]];
+const accountLinks = [["/notifications", "Notifications"],["/booked-services", "My bookings"], ["/add-service", "Add a service"], ["/manage-services", "My services"], ["/service-to-do", "Work queue"]];
 const navClass = ({ isActive }) => `ga-nav-link ${isActive ? "ga-nav-active" : ""}`;
 
 const Navbar = () => {
   const { user, logOut } = useContext(AuthContext);
+  const notifications=useContext(NotificationsContext);
   const [signingOut, setSigningOut] = useState(false);
   const headerRef = useRef(null);
   const navigate = useNavigate();
@@ -45,6 +47,7 @@ const Navbar = () => {
         <nav aria-label="Main navigation" className="hidden lg:flex items-center gap-1">{links(publicLinks)}</nav>
         <div className="flex items-center gap-3">
           <div className="hidden sm:block"><ThemeChanger /></div>
+          {user && <NavLink to="/notifications" className="ga-nav-link text-sm" aria-label={`Notifications (${notifications?.unreadCount || 0} unread, ${notifications?.unreadMessages || 0} unread messages)`}>Alerts{notifications?.unreadCount>0 && <span className="badge badge-primary badge-sm ml-1">{notifications.unreadCount}</span>}{notifications?.unreadMessages>0 && <span className="badge badge-outline badge-sm ml-1">{notifications.unreadMessages} msg</span>}</NavLink>}
           {user ? (
             <details className="relative hidden lg:block">
               <summary className="ga-account-trigger"><Avatar src={user.photoURL} name={user.displayName || "Your account"} className="h-8 w-8" /><span>My account</span><FiChevronDown aria-hidden="true" /></summary>

@@ -10,8 +10,10 @@ A gadget repair service marketplace built with React/Vite, Firebase Authenticati
 - Controlled repair stages, versioned diagnosis/quotations, customer approval/rejection, quotation questions and a shared audit timeline; refreshed on demand.
 - Dark/light themes, responsive navigation, accessible forms and confirmation dialogs.
 - Server-derived booking price/provider snapshots, ownership checks and duplicate protection.
+- Private booking conversations, unread message counts and persistent in-app notifications with explicit read actions.
+- Server-side transactional email adapter, durable delivery records and a protected retry job; requires email provider and scheduler configuration.
 
-There is one account model: an authenticated user can book and offer services. Admin roles, payments, real-time notifications, reviews and reserved appointment slots are not implemented. A selected booking date is a preference.
+There is one account model: an authenticated user can book and offer services. Admin roles, payments, instant push notifications, reviews and reserved appointment slots are not implemented. A selected booking date is a preference.
 
 ## Run locally
 
@@ -49,8 +51,14 @@ New booking requests send only `serviceId`, `date` and optional `instruction`. T
 
 Removing a service hides it from the catalogue and preserves its ownership record so existing repairs remain manageable. Legacy bookings whose service was physically deleted before this change remain visible to their customer; they are withheld from provider queues when ownership cannot be verified. Recovery requires a separately reviewed reconciliation, not trusting the old client-supplied provider field.
 
-See [current API contract](docs/API_CONTRACT.md), [product plan](plan.md) and [Phase 5 validation](docs/PHASE_5_VALIDATION.md) and [Phase 6 validation](docs/PHASE_6_VALIDATION.md).
+See [current API contract](docs/API_CONTRACT.md), [product plan](plan.md) and [Phase 5 validation](docs/PHASE_5_VALIDATION.md), [Phase 6 validation](docs/PHASE_6_VALIDATION.md) and [Phase 7 validation](docs/PHASE_7_VALIDATION.md).
 
 ## Deployment
 
-Firebase Hosting serves the frontend; `gadget-aid-server/vercel.json` points to the exported Express app. Git pushes are not a Firebase Hosting deployment. Release matching backend/frontend together: Phase 6 replaces the old status dropdown with revision-protected workflow actions. Matching legacy booking requests remain supported, but old clients cannot bypass approval using status updates. Avoid a backend-only rollback that would reintroduce arbitrary status writes. No production deployment or migration was performed in Phase 6.
+Firebase Hosting serves the frontend; `gadget-aid-server/vercel.json` points to the exported Express app. Git pushes are not a Firebase Hosting deployment. Release matching backend/frontend together: Phase 6 replaces the old status dropdown with revision-protected workflow actions. Matching legacy booking requests remain supported, but old clients cannot bypass approval using status updates. Avoid a backend-only rollback that would reintroduce arbitrary status writes. No production deployment or migration was performed in Phases 6–7.
+
+## Communication and email
+
+Notifications and conversations refresh every 30 seconds while visible; manual refresh is available. Only the customer and canonical provider can read a booking conversation. Alerts and messages have separate unread counts. Messages do not authorize repairs; quotation approval remains an explicit workflow action.
+
+Email is disabled until the server has a Resend key, verified sender, frontend APP_URL and CRON_SECRET, and a trusted scheduler invokes the delivery job. No secret belongs in VITE variables. See [email setup and recovery](docs/EMAIL_DELIVERY.md) for exact configuration, batch limits and failure handling. Production email delivery has not been activated by this change.

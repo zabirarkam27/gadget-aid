@@ -1,3 +1,4 @@
+import Notifications from "../../src/pages/Notifications";
 import RepairDetails from "../../src/pages/RepairDetails";
 import { useState } from "react";
 
@@ -20,6 +21,7 @@ import ContactUs from "../../src/pages/ContactUs";
 import {setFixtureIdentity,getFixtureUser,setFixtureOffline} from "./state";
 const protectedPage = page => <PrivateRoutes>{page}</PrivateRoutes>;
 const router=createBrowserRouter([{path:"/",element:<MainLayout />,errorElement:<ErrorPage />,children:[
+ {path:"notifications",element:protectedPage(<Notifications />)},
  {path:"bookings/:id",element:protectedPage(<RepairDetails />)},
   {index:true,element:<Home />},{path:"services",element:<Services />},{path:"services/:id",element:protectedPage(<ServiceDetails />)},
   {path:"booked-services",element:protectedPage(<BookedServices />)},{path:"service-to-do",element:protectedPage(<ServiceToDo />)},

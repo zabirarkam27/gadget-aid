@@ -79,6 +79,7 @@ const event = (
   createdAt: at,
   note,
   customerVisible: true,
+  notify: true,
   ...extra,
 });
 const initialRepair = (booking, user, at, isNew = false) => ({
