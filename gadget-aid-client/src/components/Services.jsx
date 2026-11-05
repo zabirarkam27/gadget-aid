@@ -3,10 +3,12 @@ import { Helmet } from "react-helmet-async";
 import ServiceCard from "./ServiceCard";
 import { API_URL } from "../utils/api";
 import FormField from "./ui/FormField";
+import { useSearchParams } from "react-router-dom";
 
 const Services = () => {
   const [services, setServices] = useState([]);
-  const [searchText, setSearchText] = useState("");
+  const [searchParams] = useSearchParams();
+  const [searchText, setSearchText] = useState(searchParams.get("q") || "");
   const [filteredServices, setFilteredServices] = useState([]);
 
   useEffect(() => {

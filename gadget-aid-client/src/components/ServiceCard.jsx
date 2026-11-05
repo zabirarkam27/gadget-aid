@@ -1,46 +1,18 @@
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { FiArrowUpRight, FiMapPin } from "react-icons/fi";
+import Button from "./Button";
+import Avatar from "./ui/Avatar";
+import ServiceImage from "./ui/ServiceImage";
 
-const ServiceCard = ({ service }) => {
-  const { _id, name, image, description, price, providerName, providerPhoto } =
-    service;
-
-  return (
-    <motion.div
-      whileHover={{
-        scale: 1.03,
-        boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.1)",
-      }}
-      transition={{ type: "spring", stiffness: 300 }}
-      className="bg-base-100 rounded-lg shadow-lg p-5 border border-base-300"
-    >
-      <img
-        src={image}
-        alt={name}
-        className="w-full h-48 object-cover rounded-md mb-4"
-      />
-      <h3 className="text-xl font-semibold text-primary mb-2">{name}</h3>
-      <p className="text-base-content/70 mb-4">
-        {description.length > 100
-          ? description.slice(0, 100) + "..."
-          : description}
-      </p>
-      <div className="flex items-center gap-3 mb-4">
-        <img
-          src={providerPhoto}
-          alt={providerName}
-          className="w-10 h-10 rounded-full"
-        />
-        <span className="text-base-content/80">{providerName}</span>
-      </div>
-      <div className="flex justify-between items-center">
-        <p className="font-bold text-primary">${price}</p>
-        <Link to={`/services/${_id}`} className="btn btn-sm btn-primary">
-          View Details
-        </Link>
-      </div>
-    </motion.div>
-  );
-};
-
+const ServiceCard = ({ service }) => (
+  <article className="ga-surface overflow-hidden flex flex-col group">
+    <div className="aspect-[16/10] overflow-hidden bg-base-300"><ServiceImage src={service.image} alt={service.name || "Repair service"} className="transition-transform duration-300 motion-safe:group-hover:scale-105" /></div>
+    <div className="p-5 sm:p-6 flex flex-1 flex-col">
+      <p className="ga-muted text-xs flex items-center gap-1.5 mb-3"><FiMapPin aria-hidden="true" />{service.area || "Contact provider for service area"}</p>
+      <h3 className="text-xl font-semibold leading-snug">{service.name || "Repair service"}</h3>
+      <p className="ga-muted text-sm mt-3 line-clamp-2">{service.description || "Open the service for more information."}</p>
+      <div className="mt-5 flex items-center gap-2.5"><Avatar src={service.providerPhoto || service.providerImage} name={service.providerName || "Service provider"} className="h-8 w-8" /><span className="text-sm truncate">{service.providerName || "Service provider"}</span></div>
+      <div className="mt-auto pt-6 flex flex-wrap items-center justify-between gap-3"><p className="ga-numeric text-xl font-bold">{service.price !== undefined && service.price !== null ? `$${service.price}` : "Ask provider"}</p><Button to={`/services/${service._id}`} variant="outline" size="sm" aria-label={`View ${service.name || "service"}`}>View details <FiArrowUpRight aria-hidden="true" /></Button></div>
+    </div>
+  </article>
+);
 export default ServiceCard;

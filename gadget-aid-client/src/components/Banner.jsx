@@ -1,48 +1,23 @@
-import { motion } from "framer-motion";
-import bannerImg from "../../public/banner.png"; 
+import { FiArrowUpRight, FiArrowRight } from "react-icons/fi";
+
 import Button from "./Button";
 
-const Banner = () => {
-  return (
-    <div className="relative w-full h-[80vh] bg-slate-950 text-white overflow-hidden">
-      {/* Background Image */}
-      <img
-        src={bannerImg}
-        alt="Gadget Repair Banner"
-        className="absolute inset-0 w-full h-full object-cover opacity-30"
-      />
-
-      {/* Overlay Content */}
-      <div className="relative z-10 flex flex-col justify-center items-start h-full max-w-7xl mx-auto px-6">
-        <motion.h1
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 1 }}
-          className="text-4xl md:text-6xl font-bold leading-tight mb-4"
-        >
-          Welcome to <span className="text-sky-400">GadgetAid</span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 1 }}
-          className="text-lg md:text-xl mb-6"
-        >
-          We bring your damaged devices back to life. Fast, affordable &
-          reliable electronic repair services.
-        </motion.p>
-
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-        >
-          <Button to="/services">Book a Repair</Button>
-        </motion.div>
+const Banner = () => (
+  <section className="ga-hero overflow-hidden">
+    <div className="ga-container grid lg:grid-cols-2 gap-10 lg:gap-16 items-center py-14 lg:py-20">
+      <div>
+        <p className="ga-eyebrow mb-5 inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Repair. Reuse. Keep going.</p>
+        <h1 className="ga-hero-title">Your tech deserves<br />a <span className="text-primary">second life.</span></h1>
+        <p className="ga-muted text-lg max-w-lg mt-6">A cracked screen. A laptop that won’t start. Find a repair service, meet the provider and take the next step with GadgetAid.</p>
+        <div className="flex flex-wrap gap-3 mt-8"><Button to="/services" size="lg">Find a repair service <FiArrowUpRight aria-hidden="true" /></Button><Button to="/contact-us" variant="ghost">Have a question? <FiArrowRight aria-hidden="true" /></Button></div>
+        <p className="ga-muted text-xs mt-8 tracking-wide">PHONES · COMPUTERS · HOME ELECTRONICS</p>
+      </div>
+      <div className="ga-hero-art">
+        <img src="/banner.png" alt="Exploded view of a smartphone and its internal components" width="640" height="520" className="w-full h-full object-cover" fetchPriority="high" />
+        <div className="ga-hero-caption"><span className="text-primary text-xs tracking-widest uppercase">Care for what connects you</span><p className="text-white font-semibold mt-1">Small repair. More possibilities.</p></div>
       </div>
     </div>
-  );
-};
-
+  </section>
+);
 export default Banner;
+

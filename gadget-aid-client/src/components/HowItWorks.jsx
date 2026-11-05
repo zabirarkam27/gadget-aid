@@ -1,54 +1,12 @@
-import { motion } from "framer-motion";
-
-const HowItWorks = () => {
-  const steps = [
-    {
-      title: "1. Choose Your Service",
-      description: "Browse our service list and select the repair you need.",
-    },
-    {
-      title: "2. Book Online",
-      description: "Fill out a short form and confirm your booking instantly.",
-    },
-    {
-      title: "3. Get It Fixed",
-      description: "We repair your device and notify you when it’s done.",
-    },
-  ];
-
-  return (
-    <section className="bg-base-100 py-12 md:py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <motion.h2
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-12"
-        >
-          How It Works
-        </motion.h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {steps.map((step, i) => (
-            <motion.div
-              key={step.title}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.2, duration: 0.6 }}
-              className="bg-base-200 hover:bg-base-300 transition-colors rounded-xl p-6 shadow-md flex flex-col items-center text-center h-full"
-            >
-              <div className="text-3xl font-bold text-primary mb-2">
-                {step.title}
-              </div>
-              <p className="text-base-content/70 text-base sm:text-lg">
-                {step.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
+import { createElement } from "react";
+import { FiSearch, FiCalendar, FiTool } from "react-icons/fi";
+const steps = [
+  [FiSearch, "01", "Find your service", "Browse repair services and compare the provider, service area and listed price."],
+  [FiCalendar, "02", "Send a booking request", "Sign in, choose your preferred date and share useful details with the provider."],
+  [FiTool, "03", "Follow the progress", "Open My bookings to see the status as your provider updates the repair."]
+];
+const HowItWorks = () => (
+  <section className="ga-container ga-section" aria-labelledby="process-title"><div className="max-w-xl mb-10"><p className="ga-eyebrow mb-3">From problem to progress</p><h2 id="process-title" className="text-page font-bold">A clearer path to repair.</h2></div><div className="grid md:grid-cols-3 gap-8">{steps.map(([Icon, number, title, copy]) => <div key={number} className="border-t border-base-300 pt-6"><div className="flex justify-between items-center mb-6">{createElement(Icon, {size: 26, className: "text-primary", "aria-hidden": true})}<span className="ga-muted text-sm ga-numeric">/{number}</span></div><h3 className="text-xl font-semibold mb-3">{title}</h3><p className="ga-muted">{copy}</p></div>)}</div></section>
+);
 export default HowItWorks;
+

@@ -211,3 +211,16 @@
   .ga-skip-link { position: fixed; top: -100px; left: 1rem; z-index: 100; padding: .75rem 1rem; border-radius: .75rem; background: var(--color-primary); color: var(--color-primary-content); }
   .ga-skip-link:focus { top: 1rem; }
 }
+
+@layer components {
+  .ga-hero { background: radial-gradient(ellipse at 85% 40%, color-mix(in srgb, var(--color-primary) 9%, transparent), transparent 60%); }
+  .ga-hero-title { font-size: clamp(2.6rem, 5.3vw, 4.75rem); line-height: 1.08; letter-spacing: -.045em; font-weight: 700; }
+  .ga-hero-art { position: relative; min-width: 0; aspect-ratio: 1.15; overflow: hidden; border-radius: 1.5rem; border: 1px solid var(--ga-border-subtle); background: #071827; }
+  .ga-hero-caption { position: absolute; inset: auto 0 0; padding: 2rem; background: linear-gradient(transparent, #071827); }
+  .ga-discovery-link { display: flex; align-items: center; gap: 1rem; padding: 1.4rem; border: 1px solid var(--ga-border-subtle); border-radius: 1rem; background: var(--color-base-100); }
+  .ga-discovery-link:hover { border-color: var(--color-primary); }
+  .ga-faq { border-bottom: 1px solid var(--ga-border-subtle); }
+  .ga-faq summary { display: flex; justify-content: space-between; gap: 1.5rem; cursor: pointer; padding: 1.25rem 0; list-style: none; font-weight: 600; }
+  .ga-faq[open] summary { color: var(--color-primary); }
+  .ga-page-heading { padding-block: clamp(2.5rem, 6vw, 4.5rem); border-bottom: 1px solid var(--ga-border-subtle); }
+}
