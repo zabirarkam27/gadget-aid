@@ -12,6 +12,7 @@ import ManageService from "./../pages/ManageService";
 import PrivateRoutes from "./PrivateRoutes";
 import Error from "../pages/Error";
 import ContactUs from "../pages/ContactUs";
+import ForgotPassword from "../pages/ForgotPassword";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <Error />,
     children: [
+      { path: "/forgot-password", element: <ForgotPassword /> },
       {
         path: "/",
         element: <Home />,

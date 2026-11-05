@@ -224,3 +224,7 @@
   .ga-faq[open] summary { color: var(--color-primary); }
   .ga-page-heading { padding-block: clamp(2.5rem, 6vw, 4.5rem); border-bottom: 1px solid var(--ga-border-subtle); }
 }
+
+@layer components {
+  .ga-auth-symbol { display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; border: 1px solid var(--ga-border-subtle); border-radius: 1.75rem; background: color-mix(in srgb, var(--color-primary) 8%, var(--color-base-100)); color: var(--color-primary); }
+}

@@ -1,210 +1,63 @@
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useContext, useState } from "react";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  updateProfile,
-} from "firebase/auth";
-import { AuthContext } from "../provider/AuthProvider";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useContext, useRef, useState } from "react";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from "firebase/auth";
+import { FcGoogle } from "react-icons/fc";
 import { Helmet } from "react-helmet-async";
+import { toast } from "react-toastify";
+import { AuthContext } from "../provider/AuthProvider";
+import { authMessage, returnPath } from "../utils/authFeedback";
+import AuthShell from "../components/ui/AuthShell";
+import FormField from "../components/ui/FormField";
+import PasswordField from "../components/ui/PasswordField";
+import Button from "../components/Button";
 
 const Registration = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const { createNewUser, setUser } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const auth = getAuth();
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const form = new FormData(e.target);
-    const name = form.get("name");
-    const photo = form.get("photo");
-    const email = form.get("email");
-    const password = form.get("password");
-
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters long.", {
-        position: "top-center",
-      });
-      return;
-    }
-    if (!/[A-Z]/.test(password)) {
-      toast.error("Password must contain at least one uppercase letter.", {
-        position: "top-center",
-      });
-      return;
-    }
-    if (!/[a-z]/.test(password)) {
-      toast.error("Password must contain at least one lowercase letter.", {
-        position: "top-center",
-      });
-      return;
-    }
-
-    createNewUser(email, password)
-      .then((result) => {
-        const user = result.user;
-        return updateProfile(user, {
-          displayName: name,
-          photoURL: photo,
-        })
-          .then(() => signOut(auth))
-          .then(() => {
-            toast.success("Registration Successful! Please Login", {
-              position: "top-center",
-            });
-            navigate("/login");
-          });
-      })
-      .catch((error) => toast.error(error.message));
+  const { createNewUser,setUser } = useContext(AuthContext);
+  const location=useLocation(),navigate=useNavigate();
+  const [pending,setPending]=useState("");
+  const [error,setError]=useState("");
+  const [passwordError,setPasswordError]=useState("");
+  const [createdEmail,setCreatedEmail]=useState("");
+  const lock=useRef(false);
+  const handleSubmit = async event => {
+    event.preventDefault(); if(lock.current)return;
+    const form=new FormData(event.currentTarget);
+    const name=String(form.get("name")).trim(), email=String(form.get("email")).trim(),password=String(form.get("password")),photo=String(form.get("photo") || "").trim();
+    if(password.length<6 || !/[A-Z]/.test(password) || !/[a-z]/.test(password)){setPasswordError("Use at least 6 characters with an uppercase and a lowercase letter.");return;}
+    if(!name){setError("Enter your name.");return;}
+    if(photo && !/^https?:\/\//i.test(photo)){setError("Use an http or https URL for your photo.");return;}
+    lock.current=true;setPending("email");setError("");setPasswordError("");
+    let created=false;
+    try {
+      const result=await createNewUser(email,password);created=true;
+      await updateProfile(result.user,{displayName:name,photoURL:photo || null});
+      await signOut(getAuth());setUser(null);
+      toast.success("Account created. Log in to continue.");
+      navigate("/login",{replace:true,state:{...location.state,email}});
+    }catch(failure){
+      if(created){setCreatedEmail(email);setError("Your account was created, but we could not finish the profile setup. Log in to continue.");}
+      else setError(authMessage(failure));
+    }finally{lock.current=false;setPending("");}
   };
-
-  const handleGoogleLogin = () => {
-    const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        const user = result.user;
-        setUser(user);
-        toast.success("Successfully Logged in with Google!", {
-          position: "top-center",
-        });
-        navigate("/");
-      })
-      .catch((error) => {
-        toast.error("Login failed", { position: "top-center" });
-        console.error(error.message);
-      });
+  const googleLogin=async()=>{
+    if(lock.current)return;lock.current=true;setPending("google");setError("");
+    try{const result=await signInWithPopup(getAuth(),new GoogleAuthProvider());setUser(result.user);navigate(returnPath(location.state),{replace:true});}
+    catch(failure){setError(authMessage(failure));}finally{lock.current=false;setPending("");}
   };
-
-  return (
-    <>
-      <Helmet>
-        <title>Register || GadgetAid</title>
-      </Helmet>
-      <div className="min-h-screen bg-gradient-to-br from-base-200 via-base-300 to-base-200 flex items-center justify-center p-4">
-        <div className="card bg-base-100 border border-base-300 w-full max-w-md p-6 rounded-2xl shadow-xl">
-          <h2 className="text-3xl font-bold text-center mb-4 text-base-content">
-            REGISTER
-          </h2>
-          <p className="text-sm text-center text-base-content/70 mb-6">
-            Power up your tech life with{" "}
-            <span className="font-semibold text-primary">Gadget Aid</span> —
-            your trusted hub for expert electronic repairs and digital
-            solutions.
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className="block mb-1 text-sm font-medium text-base-content/80">
-                Name
-              </label>
-              <input
-                name="name"
-                type="text"
-                className="input input-bordered w-full"
-                placeholder="Enter your name"
-                required
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block mb-1 text-sm font-medium text-base-content/80">
-                Email
-              </label>
-              <input
-                name="email"
-                type="email"
-                className="input input-bordered w-full"
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-
-            {/* Password */}
-            <div className="relative">
-              <label className="block mb-1 text-sm font-medium text-base-content/80">
-                Password
-              </label>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                required
-                className="input input-bordered w-full pr-10"
-                placeholder="Enter your password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-9 text-base-content/60"
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-
-            {/* Photo URL */}
-            <div>
-              <label className="block mb-1 text-sm font-medium text-base-content/80">
-                Photo URL
-              </label>
-              <input
-                name="photo"
-                type="text"
-                className="input input-bordered w-full"
-                placeholder="Paste photo URL"
-                required
-              />
-            </div>
-
-            {/* Register Button */}
-            <button
-              type="submit"
-              className="btn btn-primary w-full rounded-full mt-6"
-            >
-              Register
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="flex items-center my-4">
-            <div className="border-t flex-grow border-base-300"></div>
-            <span className="mx-3 text-sm text-base-content/40">OR</span>
-            <div className="border-t flex-grow border-base-300"></div>
-          </div>
-
-          {/* Google Login */}
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="btn btn-outline w-full rounded-full hover:shadow-md"
-          >
-            <img
-              src="https://img.icons8.com/?size=100&id=V5cGWnc9R4xj&format=png"
-              alt="google-icon"
-              className="w-5 h-5 mr-2"
-            />
-            Continue with Google
-          </button>
-
-          {/* Login Link */}
-          <p className="text-sm text-center mt-4">
-            Already have an account?
-            <Link
-              to="/login"
-              className="text-primary font-semibold ml-1 hover:underline"
-            >
-              Login
-            </Link>
-          </p>
-        </div>
-      </div>
-    </>
-  );
+  return <><Helmet><title>Create an account | GadgetAid</title></Helmet><AuthShell title="Let’s get you started." description="One account to book repairs or offer your own services.">
+    {createdEmail ? <div><p role="status" className="ga-muted mb-6">{error}</p><Button to="/login" state={{...location.state,email:createdEmail}} className="w-full">Continue to login</Button></div> : <>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <FormField label="Your name" name="name" autoComplete="name" required maxLength={80} disabled={!!pending} />
+        <FormField label="Email address" name="email" type="email" autoComplete="email" required disabled={!!pending} />
+        <PasswordField name="password" autoComplete="new-password" required minLength={6} disabled={!!pending} helper="At least 6 characters, including uppercase and lowercase letters." error={passwordError} />
+        <FormField label="Photo URL (optional)" name="photo" type="url" placeholder="https://example.com/photo.jpg" disabled={!!pending} helper="You can also use your account without a photo." />
+        {error && <p role="alert" className="text-error text-sm">{error}</p>}
+        <Button type="submit" loading={pending === "email"} disabled={!!pending} className="w-full">{pending === "email" ? "Creating account…" : "Create account"}</Button>
+      </form>
+      <div className="flex items-center gap-4 my-6 ga-muted text-xs"><span className="h-px bg-base-300 flex-1" />OR<span className="h-px bg-base-300 flex-1" /></div>
+      <Button variant="outline" className="w-full" disabled={!!pending} loading={pending === "google"} onClick={googleLogin}><FcGoogle size={20} aria-hidden="true" />Continue with Google</Button>
+      <p className="text-sm text-center ga-muted mt-6">Already have an account? <Link to="/login" state={location.state} className="text-primary ga-text-link">Log in</Link></p>
+    </>}
+  </AuthShell></>;
 };
-
 export default Registration;
