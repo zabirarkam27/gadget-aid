@@ -1,16 +1,16 @@
 import { HelmetProvider } from "react-helmet-async";
-import Navbar from "../components/Navbar";
 import { Outlet } from "react-router-dom";
-import Footer from '../components/Footer';
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
-const MainLayout = () => {
-    return (
-        <HelmetProvider>
-            <Navbar></Navbar>
-            <Outlet></Outlet>
-            <Footer></Footer>
-        </HelmetProvider>
-    );
-};
-
+const MainLayout = () => (
+  <HelmetProvider>
+    <div className="flex min-h-screen flex-col">
+      <a href="#main-content" className="ga-skip-link">Skip to content</a>
+      <Navbar />
+      <main id="main-content" tabIndex={-1} className="flex-1 min-w-0"><Outlet /></main>
+      <Footer />
+    </div>
+  </HelmetProvider>
+);
 export default MainLayout;
