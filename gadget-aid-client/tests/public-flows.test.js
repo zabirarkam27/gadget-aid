@@ -29,5 +29,5 @@ test("public API response handling accepts valid data and preserves missing stat
 });
 
 test("invalid JSON is rejected instead of being displayed as service data", async () => {
-  await assert.rejects(readJson(new Response("<html>error page</html>", { status: 200 })), SyntaxError);
+  await assert.rejects(readJson(new Response("<html>error page</html>", { status: 200 })), error => error.code === "INVALID_RESPONSE" && !error.message.includes("<html>"));
 });

@@ -28,7 +28,7 @@ const ManageService=()=>{
       const result=await authFetch(`${API_URL}/services/${editing._id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(values)}).then(readJson);
       if(!result.matchedCount)throw new Error("Service unavailable");
       setData(previous=>previous.map(service=>service._id===editing._id ? {...service,...values} : service));setEditing(null);toast.success("Service saved.");
-    }catch{setMutationError("Your changes could not be saved. Please try again.");}finally{lock.current=false;setSaving(false);}
+    }catch(failure){setMutationError(failure.message || "Your changes could not be saved. Please try again.");}finally{lock.current=false;setSaving(false);}
   };
   const remove=async()=>{
     if(lock.current)return;lock.current=true;setSaving(true);setMutationError("");
@@ -36,7 +36,10 @@ const ManageService=()=>{
       const result=await authFetch(`${API_URL}/services/${deleting._id}`,{method:"DELETE"}).then(readJson);
       if(!result.deletedCount)throw new Error("Service unavailable");
       setData(previous=>previous.filter(service=>service._id!==deleting._id));setDeleting(null);toast.success("Service removed from the catalogue.");
-    }catch{setMutationError("The service could not be removed. Please try again.");}finally{lock.current=false;setSaving(false);}
+    }catch(failure){
+      if(failure.status === 404){setData(previous=>previous.filter(service=>service._id!==deleting._id));setDeleting(null);toast.info("The service is no longer listed.");}
+      else setMutationError(failure.message || "The service could not be removed. Please try again.");
+    }finally{lock.current=false;setSaving(false);}
   };
   return <DashboardLayout title="My services" eyebrow="Provider workspace" description="Keep your listings clear, current and ready for the next repair request." action={<Button to="/add-service">Add a service ↗</Button>}>
     {!loading && !error && <SummaryCards items={[{label:"Services listed",value:data.length},{label:"Service areas",value:areas.length},{label:"Matching listings",value:results.length}]} />}

@@ -1,5 +1,5 @@
-import { useContext } from "react";
-import { AuthContext } from "../provider/AuthProvider";
+import { Fragment, useContext } from "react";
+import { AuthContext } from "../provider/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
 
 const PrivateRoutes = ({ children }) => {
@@ -14,7 +14,7 @@ const PrivateRoutes = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+  return <Fragment key={user.uid || user.email}>{children}</Fragment>;
 };
 
 export default PrivateRoutes;

@@ -20,5 +20,5 @@ export const authMessage = (error) => {
     "auth/user-disabled": "This account is unavailable. Contact support for help.",
     "auth/account-exists-with-different-credential": "Use the sign-in method you originally used for this email."
   };
-  return messages[error?.code] || "We could not complete that request. Please try again.";
+  return Object.hasOwn(messages,error?.code) ? messages[error.code] : "We could not complete that request. Please try again.";
 };

@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } 
 import { FcGoogle } from "react-icons/fc";
 import { Helmet } from "react-helmet-async";
 import { toast } from "react-toastify";
-import { AuthContext } from "../provider/AuthProvider";
+import { AuthContext } from "../provider/AuthContext";
 import { authMessage, returnPath } from "../utils/authFeedback";
 import AuthShell from "../components/ui/AuthShell";
 import FormField from "../components/ui/FormField";

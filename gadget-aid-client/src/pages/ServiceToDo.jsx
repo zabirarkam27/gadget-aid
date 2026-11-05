@@ -30,7 +30,7 @@ const ServiceToDo = () => {
       if (!result.matchedCount) throw new Error("Booking unavailable");
       setData(previous => previous.map(booking => booking._id === change.booking._id ? {...booking,status:change.status} : booking));
       toast.success("Repair status updated."); setChange(null);
-    } catch { setSaveError("The status could not be updated. Please try again."); }
+    } catch (failure) { setSaveError(failure.message || "The status could not be updated. Please try again."); }
     finally {lock.current = false; setSaving(false);}
   };
   return <DashboardLayout title="Work queue" eyebrow="Provider workspace" description="Manage requests for your services. Keep customers informed as repairs progress." action={<Button variant="outline" onClick={retry} disabled={loading}>Refresh queue</Button>}>

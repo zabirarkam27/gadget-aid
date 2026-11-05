@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiMenu, FiArrowUpRight, FiLogOut, FiChevronDown } from "react-icons/fi";
 import { toast } from "react-toastify";
-import { AuthContext } from "../provider/AuthProvider";
+import { AuthContext } from "../provider/AuthContext";
 import ThemeChanger from "./ThemeChanger";
 import Button from "./Button";
 import Brand from "./ui/Brand";

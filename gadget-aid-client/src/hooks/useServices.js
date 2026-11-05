@@ -9,7 +9,7 @@ const useServices = () => {
     const controller = new AbortController();
     setState({ data: [], loading: true, error: "" });
     fetch(`${API_URL}/services`, { signal: controller.signal }).then(readJson).then(data => {
-      if (!Array.isArray(data)) throw new Error("Unexpected service response");
+      if (!Array.isArray(data) || data.some(item => !item || typeof item !== "object" || !item._id)) throw new Error("Unexpected service response");
       if (!controller.signal.aborted) setState({ data, loading: false, error: "" });
     }).catch(error => {
       if (error.name !== "AbortError" && !controller.signal.aborted) setState({ data: [], loading: false, error: "Services are unavailable right now. Please try again." });

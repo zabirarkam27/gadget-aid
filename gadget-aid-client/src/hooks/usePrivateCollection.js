@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../provider/AuthProvider";
+import { AuthContext } from "../provider/AuthContext";
 import { API_URL } from "../utils/api";
 import { authFetch } from "../utils/authFetch";
 import { readJson } from "../utils/readJson";
@@ -14,7 +14,7 @@ const usePrivateCollection = (path) => {
     setState({ owner, data: [], loading: !!owner, error: owner ? "" : "Please log in to view this workspace." });
     if (owner) {
       authFetch(`${API_URL}${path}`, { signal: controller.signal }).then(readJson).then(data => {
-        if (!Array.isArray(data)) throw new Error("Unexpected response");
+        if (!Array.isArray(data) || data.some(item => !item || typeof item !== "object" || !item._id)) throw new Error("Unexpected response");
         if (!controller.signal.aborted) setState({ owner, data, loading: false, error: "" });
       }).catch(error => {
         if (!controller.signal.aborted) setState({ owner, data: [], loading: false, error: error.status === 401 ? "Your session has expired. Log in again to continue." : "This workspace could not be loaded. Please try again." });

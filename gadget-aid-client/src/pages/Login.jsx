@@ -3,7 +3,7 @@ import { useContext, useRef, useState } from "react";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { FcGoogle } from "react-icons/fc";
 import { Helmet } from "react-helmet-async";
-import { AuthContext } from "../provider/AuthProvider";
+import { AuthContext } from "../provider/AuthContext";
 import { authMessage, returnPath } from "../utils/authFeedback";
 import Button from "../components/Button";
 import AuthShell from "../components/ui/AuthShell";
