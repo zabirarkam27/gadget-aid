@@ -1,207 +1,49 @@
-import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../provider/AuthProvider";
-import { Helmet } from "react-helmet-async";
+import { useRef, useState } from "react";
 import { toast } from "react-toastify";
+import usePrivateCollection from "../hooks/usePrivateCollection";
 import { API_URL } from "../utils/api";
 import { authFetch } from "../utils/authFetch";
-
-const ManageService = () => {
-  const { user } = useContext(AuthContext);
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedService, setSelectedService] = useState(null);
-
-  useEffect(() => {
-    if (user?.email) {
-      authFetch(`${API_URL}/my-services`)
-        .then((res) => res.json())
-        .then((data) => {
-          setServices(data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Error fetching services:", err);
-          setLoading(false);
-        });
-    }
-  }, [user]); // fixed: dependency array now correctly closes useEffect
-
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this service?"
-    );
-    if (!confirmDelete) return;
-
-    try {
-      const res = await authFetch(`${API_URL}/services/${id}`, {
-        method: "DELETE",
-      });
-      const result = await res.json();
-      if (result.deletedCount > 0) {
-        toast.success("Service deleted successfully!");
-        setServices(services.filter((service) => service._id !== id));
-      } else {
-        toast.error("Failed to delete service.");
-      }
-    } catch (error) {
-      console.error("Error deleting service:", error);
-      toast.error("Failed to delete service.");
-    }
+import { readJson } from "../utils/readJson";
+import DashboardLayout from "../components/dashboard/DashboardLayout";
+import SummaryCards from "../components/dashboard/SummaryCards";
+import CollectionState from "../components/dashboard/CollectionState";
+import ServiceForm from "../components/dashboard/ServiceForm";
+import ServiceImage from "../components/ui/ServiceImage";
+import FormField from "../components/ui/FormField";
+import EmptyState from "../components/ui/EmptyState";
+import Dialog from "../components/ui/Dialog";
+import Button from "../components/Button";
+import { priceLabel } from "../utils/workspace";
+const ManageService=()=>{
+  const {data,loading,error,retry,setData}=usePrivateCollection("/my-services");
+  const [query,setQuery]=useState(""),[area,setArea]=useState("");
+  const [editing,setEditing]=useState(null),[deleting,setDeleting]=useState(null);
+  const [saving,setSaving]=useState(false),[mutationError,setMutationError]=useState("");
+  const lock=useRef(false);
+  const areas=[...new Set(data.map(service=>service.area).filter(Boolean))].sort();
+  const results=data.filter(service=>(!area || service.area===area) && String(service.name || "").toLowerCase().includes(query.toLowerCase()));
+  const update=async values=>{
+    if(lock.current)return;lock.current=true;setSaving(true);setMutationError("");
+    try{
+      const result=await authFetch(`${API_URL}/services/${editing._id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(values)}).then(readJson);
+      if(!result.matchedCount)throw new Error("Service unavailable");
+      setData(previous=>previous.map(service=>service._id===editing._id ? {...service,...values} : service));setEditing(null);toast.success("Service saved.");
+    }catch{setMutationError("Your changes could not be saved. Please try again.");}finally{lock.current=false;setSaving(false);}
   };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const updatedService = {
-      name: form.name.value,
-      price: form.price.value,
-      area: form.area.value,
-      description: form.description.value,
-      image: form.image.value,
-    };
-
-    try {
-      const res = await authFetch(`${API_URL}/services/${selectedService._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedService),
-      });
-      const result = await res.json();
-
-      if (result.modifiedCount > 0) {
-        toast.success("Service updated successfully!");
-        const updatedList = services.map((service) =>
-          service._id === selectedService._id
-            ? { ...service, ...updatedService }
-            : service
-        );
-        setServices(updatedList);
-        setSelectedService(null);
-      } else {
-        toast.error("Failed to update service.");
-      }
-    } catch (err) {
-      console.error("Error updating service:", err);
-      toast.error("Failed to update service.");
-    }
+  const remove=async()=>{
+    if(lock.current)return;lock.current=true;setSaving(true);setMutationError("");
+    try{
+      const result=await authFetch(`${API_URL}/services/${deleting._id}`,{method:"DELETE"}).then(readJson);
+      if(!result.deletedCount)throw new Error("Service unavailable");
+      setData(previous=>previous.filter(service=>service._id!==deleting._id));setDeleting(null);toast.success("Service removed from the catalogue.");
+    }catch{setMutationError("The service could not be removed. Please try again.");}finally{lock.current=false;setSaving(false);}
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-r from-base-200 to-base-300 px-4 py-12">
-      <Helmet>
-        <title>Manage Service | GadgetAid</title>
-      </Helmet>
-
-      <div className="max-w-5xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8 text-primary">
-          Manage Your Services
-        </h2>
-
-        {loading ? (
-          <p className="text-center">Loading...</p>
-        ) : services.length === 0 ? (
-          <p className="text-center text-base-content/60">No services added yet.</p>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service) => (
-              <div
-                key={service._id}
-                className="bg-base-100 shadow-lg rounded-lg overflow-hidden border border-base-300"
-              >
-                <img
-                  src={service.image}
-                  alt={service.name}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-4 space-y-2">
-                  <h3 className="text-xl font-semibold text-primary">
-                    {service.name}
-                  </h3>
-                  <p>
-                    <strong>Area:</strong> {service.area}
-                  </p>
-                  <p>
-                    <strong>Price:</strong> ${service.price}
-                  </p>
-                  <p className="text-sm text-base-content/60">
-                    {service.description.slice(0, 100)}...
-                  </p>
-                  <div className="flex gap-2 mt-4">
-                    <button
-                      onClick={() => setSelectedService(service)}
-                      className="btn btn-sm btn-info"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(service._id)}
-                      className="btn btn-sm btn-error"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Update Modal */}
-      {selectedService && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-base-100 p-6 rounded-lg max-w-md w-full relative shadow-2xl">
-            <button
-              className="absolute top-2 right-2 text-base-content/50 hover:text-error text-xl"
-              onClick={() => setSelectedService(null)}
-            >
-              ✕
-            </button>
-            <h3 className="text-xl font-semibold mb-4 text-primary">
-              Edit Service
-            </h3>
-            <form onSubmit={handleUpdate} className="space-y-3">
-              <input
-                type="text"
-                name="name"
-                defaultValue={selectedService.name}
-                className="input input-bordered w-full"
-              />
-              <input
-                type="number"
-                name="price"
-                defaultValue={selectedService.price}
-                className="input input-bordered w-full"
-              />
-              <input
-                type="text"
-                name="area"
-                defaultValue={selectedService.area}
-                className="input input-bordered w-full"
-              />
-              <input
-                type="url"
-                name="image"
-                defaultValue={selectedService.image}
-                className="input input-bordered w-full"
-              />
-              <textarea
-                name="description"
-                defaultValue={selectedService.description}
-                className="textarea textarea-bordered w-full"
-              ></textarea>
-              <button
-                type="submit"
-                className="btn btn-primary w-full"
-              >
-                Update
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return <DashboardLayout title="My services" eyebrow="Provider workspace" description="Keep your listings clear, current and ready for the next repair request." action={<Button to="/add-service">Add a service ↗</Button>}>
+    {!loading && !error && <SummaryCards items={[{label:"Services listed",value:data.length},{label:"Service areas",value:areas.length},{label:"Matching listings",value:results.length}]} />}
+    <div className="grid sm:grid-cols-[1fr_16rem_auto] gap-4 items-end mb-6"><FormField label="Search my services" type="search" value={query} onChange={event=>setQuery(event.target.value)} /><FormField label="Service area" as="select" value={area} onChange={event=>setArea(event.target.value)}><option value="">All areas</option>{areas.map(value=><option key={value}>{value}</option>)}</FormField><Button variant="outline" disabled={loading} onClick={retry}>Refresh</Button></div>
+    <CollectionState loading={loading} error={error} retry={retry}>{results.length ? <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">{results.map(service=><article key={service._id} className="ga-surface overflow-hidden flex flex-col"><div className="h-40 bg-base-300"><ServiceImage src={service.image} alt={service.name} /></div><div className="p-6 flex flex-1 flex-col"><p className="ga-muted text-xs mb-3">{service.area}</p><h2 className="text-xl font-semibold">{service.name}</h2><p className="ga-muted text-sm line-clamp-2 mt-3">{service.description}</p><p className="ga-numeric font-bold text-xl mt-5">{priceLabel(service.price)}</p><div className="flex flex-wrap gap-3 pt-6 mt-auto"><Button variant="outline" onClick={()=>{setMutationError("");setEditing(service);}}>Edit service</Button><Button variant="ghost" className="text-error" onClick={()=>{setMutationError("");setDeleting(service);}}>Delete</Button></div></div></article>)}</div> : <EmptyState title={data.length ? "No matching services" : "Your expertise belongs here"} description={data.length ? "Try another name or service area." : "Add your first service so customers can discover your repairs."} action={data.length ? <Button onClick={()=>{setQuery("");setArea("");}}>Clear filters</Button> : <Button to="/add-service">Add a service</Button>} />}</CollectionState>
+    <Dialog open={!!editing} onClose={()=>{if(!saving)setEditing(null);}} title="Edit your service">{editing && <ServiceForm key={editing._id} initial={editing} onSubmit={update} submitting={saving} error={mutationError} onCancel={()=>setEditing(null)} />}</Dialog>
+    <Dialog open={!!deleting} onClose={()=>{if(!saving)setDeleting(null);}} title="Remove this service?"><p className="ga-muted mb-6"><strong className="text-base-content">{deleting?.name}</strong> will be removed from the catalogue. Existing bookings remain in the booking history.</p>{mutationError && <p role="alert" className="text-error text-sm mb-5">{mutationError}</p>}<div className="flex gap-3"><Button variant="destructive" loading={saving} onClick={remove}>Remove service</Button><Button variant="ghost" disabled={saving} onClick={()=>setDeleting(null)}>Keep service</Button></div></Dialog>
+  </DashboardLayout>;
 };
-
 export default ManageService;

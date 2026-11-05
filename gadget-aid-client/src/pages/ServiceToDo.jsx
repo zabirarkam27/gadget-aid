@@ -1,119 +1,43 @@
-import { useContext, useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
-import { AuthContext } from "../provider/AuthProvider";
+import { useRef, useState } from "react";
+import { toast } from "react-toastify";
+import usePrivateCollection from "../hooks/usePrivateCollection";
 import { API_URL } from "../utils/api";
 import { authFetch } from "../utils/authFetch";
-import StatusBadge from "../components/ui/StatusBadge";
-
+import { readJson } from "../utils/readJson";
+import { bookingStatus, statusCounts } from "../utils/workspace";
+import DashboardLayout from "../components/dashboard/DashboardLayout";
+import SummaryCards from "../components/dashboard/SummaryCards";
+import CollectionState from "../components/dashboard/CollectionState";
+import BookingCard from "../components/dashboard/BookingCard";
+import Button from "../components/Button";
+import FormField from "../components/ui/FormField";
+import EmptyState from "../components/ui/EmptyState";
+import Dialog from "../components/ui/Dialog";
 const ServiceToDo = () => {
-  const { user } = useContext(AuthContext);
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        // Server now filters by the logged-in provider's token — no need to
-        // fetch everything and filter on the client.
-        const res = await authFetch(`${API_URL}/all-bookings`);
-        const data = await res.json();
-        setBookings(data);
-      } catch (err) {
-        console.error("Failed to fetch bookings:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user?.email) {
-      fetchBookings();
-    }
-  }, [user]);
-
-  const handleStatusChange = async (id, newStatus) => {
+  const { data, loading, error, retry, setData } = usePrivateCollection("/all-bookings");
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("");
+  const [change, setChange] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const lock = useRef(false);
+  const results = data.filter(booking => (!status || bookingStatus(booking) === status) && `${booking.serviceName || ""} ${booking.userEmail || ""}`.toLowerCase().includes(query.toLowerCase()));
+  const update = async () => {
+    if (!change || lock.current) return;
+    lock.current = true; setSaving(true); setSaveError("");
     try {
-      const res = await authFetch(`${API_URL}/all-bookings/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      const data = await res.json();
-
-      if (data.modifiedCount > 0) {
-        setBookings((prev) =>
-          prev.map((booking) =>
-            booking._id === id ? { ...booking, status: newStatus } : booking
-          )
-        );
-      }
-    } catch (err) {
-      console.error("Error updating status:", err);
-    }
+      const result = await authFetch(`${API_URL}/all-bookings/${change.booking._id}`, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({status:change.status}) }).then(readJson);
+      if (!result.matchedCount) throw new Error("Booking unavailable");
+      setData(previous => previous.map(booking => booking._id === change.booking._id ? {...booking,status:change.status} : booking));
+      toast.success("Repair status updated."); setChange(null);
+    } catch { setSaveError("The status could not be updated. Please try again."); }
+    finally {lock.current = false; setSaving(false);}
   };
-
-  return (
-    <div className="min-h-screen bg-base-200 px-4 py-12">
-      <Helmet>
-        <title>Service-To-Do | GadgetAid</title>
-      </Helmet>
-
-      <h2 className="text-3xl font-bold text-center text-primary mb-8">
-        Your Services Booked by Others
-      </h2>
-
-      {loading ? (
-        <div className="flex justify-center items-center">
-          <span className="loading loading-spinner loading-lg text-primary"></span>
-        </div>
-      ) : bookings.length === 0 ? (
-        <p className="text-center text-base-content/60">
-          No bookings found where you are the service provider.
-        </p>
-      ) : (
-        <div className="max-w-5xl mx-auto space-y-6">
-          {bookings.map((booking) => (
-            <div
-              key={booking._id}
-              className="bg-base-100 rounded-lg shadow-md p-5 border border-base-300"
-            >
-              <div className="mb-2">
-                <h3 className="text-xl font-semibold text-primary mb-1">
-                  {booking.serviceName}
-                </h3>
-                <p className="text-base-content/70">
-                  <strong>Customer:</strong> {booking.userEmail}
-                </p>
-                <p className="text-base-content/70">
-                  <strong>Status:</strong>{" "}
-                  <StatusBadge status={booking.status || "pending"} />
-                </p>
-              </div>
-
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-base-content/80 mb-1">
-                  Update Status:
-                </label>
-                <select
-                  className="select select-bordered w-full sm:w-1/2"
-                  value={booking.status || "pending"}
-                  onChange={(e) =>
-                    handleStatusChange(booking._id, e.target.value)
-                  }
-                >
-                  <option value="pending">Pending</option>
-                  <option value="working">Working</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  return <DashboardLayout title="Work queue" eyebrow="Provider workspace" description="Manage requests for your services. Keep customers informed as repairs progress." action={<Button variant="outline" onClick={retry} disabled={loading}>Refresh queue</Button>}>
+    {!loading && !error && <SummaryCards items={statusCounts(data)} />}
+    <div className="grid sm:grid-cols-[1fr_14rem] gap-4 mb-6"><FormField label="Search repair requests" type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Search service or customer email" /><FormField label="Repair status" as="select" value={status} onChange={event=>setStatus(event.target.value)}><option value="">All statuses</option><option value="pending">Pending</option><option value="working">Working</option><option value="completed">Completed</option></FormField></div>
+    <CollectionState loading={loading} error={error} retry={retry}>{results.length ? <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">{results.map(booking=><BookingCard key={booking._id} booking={booking} provider action={<FormField label="Update repair status" as="select" value={bookingStatus(booking)} onChange={event=>{setSaveError("");setChange({booking,status:event.target.value});}}>{!["pending","working","completed"].includes(bookingStatus(booking)) && <option value={bookingStatus(booking)} disabled>Unknown status</option>}<option value="pending">Pending</option><option value="working">Working</option><option value="completed">Completed</option></FormField>} />)}</div> : <EmptyState title={data.length ? "No matching requests" : "Your queue is clear"} description={data.length ? "Try another search or status." : "Bookings for your services will appear here."} action={data.length ? <Button onClick={()=>{setQuery("");setStatus("");}}>Clear filters</Button> : <Button to="/manage-services" variant="outline">View my services</Button>} />}</CollectionState>
+    <Dialog open={!!change} onClose={()=>{if(!saving)setChange(null);}} title="Update repair status?"><p className="ga-muted mb-6">Change <strong className="text-base-content">{change?.booking.serviceName}</strong> to <strong className="text-base-content">{change?.status}</strong>? The customer will see this when they refresh their bookings.</p>{saveError && <p role="alert" className="text-error text-sm mb-5">{saveError}</p>}<div className="flex gap-3"><Button onClick={update} loading={saving}>Confirm update</Button><Button variant="ghost" disabled={saving} onClick={()=>setChange(null)}>Cancel</Button></div></Dialog>
+  </DashboardLayout>;
 };
-
 export default ServiceToDo;
