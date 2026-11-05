@@ -42,3 +42,7 @@
 - The `404.png` asset exists. No missing-file bug is claimed for it.
 
 Recommended first fix: B01 as a separately scoped reliability task with isolated authorization and tampered-payload tests. The plan's next design step is a reviewed proposal, then Phase 1 foundation; no later phase was started here.
+
+## Phase 5 follow-up (2026-11-06)
+
+The table above is the original Phase 0 baseline. Current outcomes and residuals are recorded in [PHASE_5_VALIDATION.md](PHASE_5_VALIDATION.md) and [API_CONTRACT.md](API_CONTRACT.md). Booking integrity/ownership, service validation, provider-photo normalization, request states, duplicate handling, accessible workspace forms/dialogs and misleading README claims have now been addressed. Earlier phases added password reset, safe return navigation, themes and shared focus/motion patterns. Historical orphan ownership and live Firebase/email delivery remain explicit limits; bundle-size, backend pagination and larger-scale performance work are not claimed complete.

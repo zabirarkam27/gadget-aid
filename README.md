@@ -1,139 +1,56 @@
-# ⚙️ Gadget Aid
+# GadgetAid
 
-**Gadget Aid** is a modern, responsive **service-sharing web application** dedicated to **Electronic Item Repairing Services**. Whether you're a customer looking to get your gadgets fixed or a service provider managing repairs, Gadget Aid delivers a seamless experience with booking, service tracking, and real-time status updates.
+A gadget repair service marketplace built with React/Vite, Firebase Authentication, Express and MongoDB. Customers discover services and request repairs; providers manage listings and update repair status.
 
-🌐 **Live Site**: [https://gadget-aid.web.app](https://gadget-aid.web.app)
+## Current features
 
----
+- Email/password and Google sign-in, password-reset page and protected-route return navigation.
+- Service catalogue with name, area and price filters over the loaded records.
+- Customer booking history, provider work queue, service creation/edit/removal.
+- Pending, working and completed statuses, refreshed on demand (not push notifications).
+- Dark/light themes, responsive navigation, accessible forms and confirmation dialogs.
+- Server-derived booking price/provider snapshots, ownership checks and duplicate protection.
 
-## 🚀 Key Features
+There is one account model: an authenticated user can book and offer services. Admin roles, payments, quotations, real-time notifications, reviews and reserved appointment slots are not implemented. A selected booking date is a preference.
 
-### 🔐 User Authentication
+## Run locally
 
-- Email/password registration & login
-- 🔗 Google Sign-In integration
-- 🔐 JWT-secured private routes
+Use the existing `.env.example` files to configure each application. Keep actual environment files out of Git. `VITE_*` values are bundled into the browser and must not contain privileged secrets.
 
-### 🛠️ Service Management
+Backend, from `gadget-aid-server`:
 
-- Add, update & delete services
-- Browse all available repair services
-- Dashboard for managing user-specific services
-
-### 📅 Booking System
-
-- Book electronic repair services
-- Update service status: `Pending → Working → Completed`
-- View booked services and service history
-
-### 📱 Responsive Design
-
-- Optimized layout for **mobile**, **tablet**, and **desktop**
-
-### 🔄 Dynamic Navigation
-
-- Conditional navbar based on login state
-- Dashboard dropdown for authenticated users
-- Custom `404` page with navigation link to homepage
-
-### ✨ User Experience Enhancements
-
-- 🔍 Search functionality
-- 🌗 Light/Dark mode toggle
-- ⚡ Animated sections using **Framer Motion** or **AOS**
-
-### 🔒 Security & Deployment
-
-- .env variables to protect sensitive credentials
-- Deployed without CORS or routing issues
-
----
-
-## 🛠️ Tech Stack
-
-**Frontend**
-
-- ⚛️ React
-- 🧭 React Router
-- 🎨 Tailwind CSS, DaisyUI
-- 🎞️ Framer Motion / AOS (Animation)
-
-**Backend**
-
-- 🟩 Node.js, Express.js
-- 🍃 MongoDB
-
-**Authentication**
-
-- 🔥 Firebase (Email/Password, Google Sign-In)
-
-**Deployment**
-
-- 🔗 Firebase Hosting (client)
-- ☁️ [Vercel]
-
----
-
-## 📁 Folder Structure
-
-```
-GADGET-AID-CLIENT/
-│
-├── node_modules/              # Project dependencies
-├── public/                    # Static assets (if applicable)
-├── src/                       # Main source code
-│   ├── assets/                # Static files like images and SVGs
-│   ├── components/            # Reusable UI components
-│   │   ├── AboutUs.jsx
-│   │   ├── Banner.jsx
-│   │   ├── Button.jsx
-│   │   ├── FeaturedSection.jsx
-│   │   ├── Footer.jsx
-│   │   ├── HowItWorks.jsx
-│   │   ├── Navbar.jsx
-│   │   ├── PopularServices.jsx
-│   │   ├── ServiceCard.jsx
-│   │   ├── ServiceDetails.jsx
-│   │   ├── Services.jsx
-│   │   └── ThemeChanger.jsx
-│   ├── context/               # React context for global state
-│   ├── firebase/              # Firebase config
-│   │   └── firebase.config.js
-│   ├── hooks/                 # Custom React hooks
-│   ├── layout/                # Layout components
-│   │   └── MainLayout.jsx
-│   ├── pages/                 # Route-based components/pages
-│   │   ├── AddService.jsx
-│   │   ├── BookedServices.jsx
-│   │   ├── Error.jsx
-│   │   ├── Home.jsx
-│   │   ├── Login.jsx
-│   │   ├── ManageService.jsx
-│   │   ├── Registration.jsx
-│   │   └── ServiceToDo.jsx
-│   ├── provider/              # Auth provider and wrappers
-│   │   └── AuthProvider.jsx
-│   ├── router/                # Route configuration and guards
-│   │   ├── PrivateRoutes.jsx
-│   │   └── router.jsx
-│   ├── App.jsx                # Root component
-│   ├── index.css              # Global styles
-│   ├── main.jsx               # Application entry point
-│
-├── .env                       # Environment variables
-├── .gitignore                 # Git ignored files
-├── eslint.config.js           # ESLint configuration
-├── index.html                 # HTML entry file
-├── package.json               # Project metadata and scripts
-├── package-lock.json          # Exact dependency versions
-├── README.md                  # Project documentation
-├── tailwind.config.js         # Tailwind CSS configuration
-└── vite.config.js             # Vite configuration
-
+```powershell
+npm ci
+npm start
 ```
 
-## 📫 Contact
+For local development use `NODE_ENV=development`, `PORT=5000` and include `http://localhost:5173` in `CORS_ORIGINS`. Configure Firebase Admin and MongoDB with your own environment values. GET `/health` checks database readiness; GET `/` is liveness only.
 
-For questions, suggestions, or collaboration, feel free to connect with me:
+Frontend, from `gadget-aid-client`:
 
-📧 Email: `zabirarkam27@gmail.com`
+```powershell
+npm ci --legacy-peer-deps
+npm run dev
+```
+
+Set `VITE_API_URL=http://localhost:5000` in the local client environment. Open the URL printed by Vite, normally `http://localhost:5173`. The legacy-peer flag accommodates the existing React 19 / react-helmet-async 2 peer declaration; no dependency versions were changed in these phases.
+
+## Verification
+
+From the client: `npm run build`, `npm run lint`, `npm test`.
+
+From the server: `npm test`. Backend tests start temporary local HTTP servers with fake identities and a fresh in-memory collection fixture. They do not import the environment-backed server entry or connect to MongoDB/Firebase.
+
+For browser QA, run `npm run qa` from the client and open `http://127.0.0.1:5176/booked-services`. This is a separate test root/API using demo customer/provider identities and memory records. Its toolbar labels the environment, permits switching test identity and simulating offline requests. It never uses real authentication or a real database. Restart it to reset demo data. It is not a production build entry; do not deploy the QA server. Ports 5055 and 5176 must be free.
+
+## Data and API policy
+
+New booking requests send only `serviceId`, `date` and optional `instruction`. The server loads the service, derives the price/provider/service information, attaches the authenticated customer and starts the request as pending. One customer/service/date is allowed; duplicates return HTTP409 with the existing booking reference. Existing records are not migrated or rewritten.
+
+Removing a service hides it from the catalogue and preserves its ownership record so existing repairs remain manageable. Legacy bookings whose service was physically deleted before this change remain visible to their customer; they are withheld from provider queues when ownership cannot be verified. Recovery requires a separately reviewed reconciliation, not trusting the old client-supplied provider field.
+
+See [current API contract](docs/API_CONTRACT.md), [product plan](plan.md) and [Phase 5 validation](docs/PHASE_5_VALIDATION.md).
+
+## Deployment
+
+Firebase Hosting serves the frontend; `gadget-aid-server/vercel.json` points to the exported Express app. Git pushes are not a Firebase Hosting deployment. Deploy the secured backend before the matching frontend: the new backend accepts matching legacy snapshots but rejects forged values. Prefer rolling back the frontend while retaining the secured backend. An older backend would ignore soft-deletion visibility and lacks booking integrity protections. No production deployment or migration was performed by the Phase 4/5 task.
