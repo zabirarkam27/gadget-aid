@@ -4,6 +4,14 @@ export const readJson = async response => {
     const messages = {
       DUPLICATE_BOOKING:"You already have a booking for this service and date. Check My bookings.",
       INVALID_SERVICE_SNAPSHOT:"The service details have changed. Reload the service and try again.",
+      STALE_WORKFLOW:"This repair changed. Refresh before trying again.",
+      STALE_QUOTATION:"This quotation changed. Refresh before deciding.",
+      INVALID_TRANSITION:"Complete the earlier repair stages and customer approval first.",
+      QUOTE_EXPIRED:"This quotation expired. Ask the provider for an updated quotation.",
+      CLARIFICATION_PENDING:"Wait for your quotation question to be answered before approving.",
+      DIAGNOSIS_REQUIRED:"Record a diagnosis before sending a quotation.",
+      WORKFLOW_REVIEW_REQUIRED:"This legacy booking needs a data review before changes can continue.",
+      WORKFLOW_LIMIT:"This repair reached its tracking limit. Contact support for review.",
       INVALID_STATUS:"Choose a valid repair status.",
       VALIDATION_ERROR:"Check the form details and try again.",
       SERVICE_UNAVAILABLE:"This service is unavailable right now. Please try again later."

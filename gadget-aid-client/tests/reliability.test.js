@@ -43,7 +43,7 @@ test("booking dates use Bangladesh time and reject impossible/past dates",()=>{
 
 test("legacy statuses count correctly without treating unknown values as pending",()=>{
   const bookings=[{serviceStatus:"working"},{status:"pending"},{status:"completed"},{status:"unexpected"}];
-  assert.equal(bookingStatus(bookings[0]),"working");assert.deepEqual(statusCounts(bookings).map(item=>item.value),[1,1,1]);
+  assert.equal(bookingStatus(bookings[0]),"repairing");assert.deepEqual(statusCounts(bookings).map(item=>item.value),[1,1,1]);
 });
 
 test("duplicate booking feedback survives the API boundary without raw server details",async()=>{

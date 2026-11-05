@@ -1,6 +1,7 @@
+const {createWorkflow,initialRepair} = require("./workflow");
 const express = require("express");
 const cors = require("cors");
-const {HttpError,fail,checkKeys,idValue,priceValue,photoUrl,validateService,todayInDhaka,validDate,serviceOwner,ownerQuery,customerQuery,statuses,serializeService,serializeBooking,bookingId} = require("./domain");
+const {HttpError,fail,checkKeys,idValue,priceValue,photoUrl,validateService,todayInDhaka,validDate,serviceOwner,ownerQuery,customerQuery,serializeService,serializeBooking,bookingId} = require("./domain");
 
 const createApp = ({ getCollections, verifyIdToken, origins = ["http://localhost:5173"], clock = () => new Date(), logger = {error(){}} }) => {
   const app = express();
@@ -87,6 +88,7 @@ const createApp = ({ getCollections, verifyIdToken, origins = ["http://localhost
     const existing=await bookings.findOne({$and:[customerQuery(req.user),{serviceId:{$in:[serviceId,id]},date}]});
     if(existing)return res.status(409).json({message:"You already have a booking for this service and date. Check My bookings.",code:"DUPLICATE_BOOKING",bookingId:existing._id});
     const record={_id:bookingId(req.user,serviceId,date),serviceId,serviceName:canonical.name,serviceImage:canonical.image,providerUid:typeof service.providerUid === "string" ? service.providerUid : null,providerEmail:canonical.providerEmail,providerName:canonical.providerName,userUid:req.user.uid,userEmail:req.user.email,userName:req.user.name,date,instruction:(req.body.instruction || "").trim(),price:canonical.price,status:"pending",createdAt:clock(),updatedAt:clock()};
+    Object.assign(record,initialRepair(record,req.user,clock(),true));
     try{await bookings.insertOne(record);res.status(201).json({acknowledged:true,insertedId:record._id,bookingId:record._id});}
     catch(error){
       if(error.code !== 11000)throw error;
@@ -105,18 +107,15 @@ const createApp = ({ getCollections, verifyIdToken, origins = ["http://localhost
     const ids=owned.flatMap(service=>[service._id,String(service._id)]);
     res.json((await bookings.find({serviceId:{$in:ids}}).toArray()).map(serializeBooking));
   });
-  app.patch("/all-bookings/:id",authenticated,async(req,res)=>{
-    const id=idValue(req.params.id);
-    checkKeys(req.body,["status"]);
-    if(!statuses.includes(req.body.status))fail(400,"Choose pending, working or completed.","INVALID_STATUS");
-    const {services,bookings}=await collections(),booking=await bookings.findOne({_id:id});
-    if(!booking)fail(404,"Booking not found.","NOT_FOUND");
-    let serviceId;try{serviceId=idValue(String(booking.serviceId));}catch{fail(403,"The service ownership could not be verified.","FORBIDDEN");}
-    const service=await services.findOne({_id:serviceId});
-    if(!service || !serviceOwner(service,req.user))fail(403,"You cannot update this booking.","FORBIDDEN");
-    const result=await bookings.updateOne({_id:id},{$set:{status:req.body.status,updatedAt:clock()}});
-    res.json({acknowledged:true,matchedCount:result.matchedCount,modifiedCount:result.modifiedCount});
-  });
+  const workflow=createWorkflow({collections,clock,serializeBooking});
+  app.get("/bookings/:id",authenticated,workflow.read);
+  app.patch("/all-bookings/:id",authenticated,workflow.transition);
+  app.post("/bookings/:id/diagnoses",authenticated,workflow.diagnosis);
+  app.post("/bookings/:id/quotations",authenticated,workflow.quotation);
+  app.post("/bookings/:id/quotations/:quoteId/decision",authenticated,workflow.decision);
+  app.post("/bookings/:id/quotations/:quoteId/questions",authenticated,workflow.clarification);
+  app.post("/bookings/:id/quotations/:quoteId/questions/:questionId/answer",authenticated,workflow.answer);
+  app.post("/bookings/:id/cancel",authenticated,workflow.cancel);
   app.use((req,res)=>res.status(404).json({message:"Endpoint not found.",code:"NOT_FOUND"}));
   app.use((error,req,res,next)=>{
     if(res.headersSent)return next(error);

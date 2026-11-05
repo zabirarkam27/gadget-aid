@@ -14,6 +14,7 @@ const matches=(row,query)=>Object.entries(query).every(([key,value])=>{
   if(key==="$and")return value.every(part=>matches(row,part));
   if(value === null)return row[key] == null;
   if(value && typeof value === "object" && !(value instanceof ObjectId) && !(value instanceof Date)) {
+    if("$exists" in value)return Object.hasOwn(row,key) === value.$exists;
     if("$in" in value)return value.$in.some(item=>item === null ? row[key] == null : equal(row[key],item));
     throw new Error(`Unsupported test query operator: ${key}`);
   }

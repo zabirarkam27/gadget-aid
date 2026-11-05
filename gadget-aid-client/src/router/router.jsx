@@ -1,3 +1,4 @@
+import RepairDetails from "../pages/RepairDetails";
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import Home from "../pages/Home";
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <Error />,
     children: [
+      {path:"/bookings/:id",element:<PrivateRoutes><RepairDetails /></PrivateRoutes>},
       { path: "/forgot-password", element: <ForgotPassword /> },
       {
         path: "/",

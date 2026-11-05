@@ -40,19 +40,14 @@ const validDate = value => {
 const serviceOwner = (service, user) => service && service.providerEmail === user.email && (!service.providerUid || service.providerUid === user.uid);
 const ownerQuery = user => ({providerEmail:user.email,$or:[{providerUid:user.uid},{providerUid:{$in:[null,""]}}]});
 const customerQuery = user => ({userEmail:user.email,$or:[{userUid:user.uid},{userUid:{$in:[null,""]}}]});
-const statuses = ["pending","working","completed"];
+const {STATUSES:statuses, workflowStatus:statusValue, workflowSummary} = require("./workflow-model");
 const text = (value,fallback="") => typeof value === "string" ? value : fallback;
-const statusValue = booking => {
-  const raw = booking.status || booking.serviceStatus;
-  const status = raw == null || raw === "" ? "pending" : text(raw,"unknown").toLowerCase();
-  return statuses.includes(status) ? status : "unknown";
-};
 const serializeService = service => ({
   _id:service._id,name:text(service.name,"Repair service"),description:text(service.description),area:text(service.area),image:photoUrl(service.image),price:priceValue(service.price),providerName:text(service.providerName,"Service provider"),providerEmail:text(service.providerEmail),providerPhoto:photoUrl(service.providerPhoto) || photoUrl(service.providerImage),createdAt:service.createdAt,
   bookable:!service.deletedAt && priceValue(service.price) !== null && typeof service.providerEmail === "string" && !!service.providerEmail && typeof service.name === "string" && !!service.name.trim()
 });
 const serializeBooking = booking => ({
-  _id:booking._id,serviceId:booking.serviceId instanceof ObjectId ? String(booking.serviceId) : text(booking.serviceId),serviceName:text(booking.serviceName,"Repair service"),serviceImage:photoUrl(booking.serviceImage),providerName:text(booking.providerName,"Service provider"),providerEmail:text(booking.providerEmail),userName:text(booking.userName),userEmail:text(booking.userEmail),date:text(booking.date),instruction:text(booking.instruction),price:priceValue(booking.price),status:statusValue(booking),createdAt:booking.createdAt,updatedAt:booking.updatedAt
+  ...workflowSummary(booking),_id:booking._id,serviceId:booking.serviceId instanceof ObjectId ? String(booking.serviceId) : text(booking.serviceId),serviceName:text(booking.serviceName,"Repair service"),serviceImage:photoUrl(booking.serviceImage),providerName:text(booking.providerName,"Service provider"),providerEmail:text(booking.providerEmail),userName:text(booking.userName),userEmail:text(booking.userEmail),date:text(booking.date),instruction:text(booking.instruction),price:priceValue(booking.price),status:statusValue(booking),createdAt:booking.createdAt,updatedAt:booking.updatedAt
 });
 const bookingId = (user,serviceId,date) => new ObjectId(createHash("sha256").update(JSON.stringify(["booking-v1",user.uid,String(serviceId).toLowerCase(),date])).digest("hex").slice(0,24));
 module.exports = {HttpError,fail,checkKeys,idValue,validId,priceValue,photoUrl,validateService,todayInDhaka,validDate,serviceOwner,ownerQuery,customerQuery,statuses,serializeService,serializeBooking,bookingId};

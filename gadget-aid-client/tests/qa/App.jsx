@@ -1,3 +1,4 @@
+import RepairDetails from "../../src/pages/RepairDetails";
 import { useState } from "react";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -19,6 +20,7 @@ import ContactUs from "../../src/pages/ContactUs";
 import {setFixtureIdentity,getFixtureUser,setFixtureOffline} from "./state";
 const protectedPage = page => <PrivateRoutes>{page}</PrivateRoutes>;
 const router=createBrowserRouter([{path:"/",element:<MainLayout />,errorElement:<ErrorPage />,children:[
+ {path:"bookings/:id",element:protectedPage(<RepairDetails />)},
   {index:true,element:<Home />},{path:"services",element:<Services />},{path:"services/:id",element:protectedPage(<ServiceDetails />)},
   {path:"booked-services",element:protectedPage(<BookedServices />)},{path:"service-to-do",element:protectedPage(<ServiceToDo />)},
   {path:"manage-services",element:protectedPage(<ManageService />)},{path:"add-service",element:protectedPage(<AddService />)},

@@ -1,6 +1,6 @@
-# API contract — Phase 5
+# API contract — Phase 6
 
-Current implementation as of 2026-11-06. Historical Phase 0 API map remains in API_MAP.md. Server entry is `gadget-aid-server/index.js`; injectable Express handlers are in `app.js`, domain validation/serialization in `domain.js`.
+Current implementation as of 2026-11-06. Historical Phase 0 API map remains in API_MAP.md. Server entry is `gadget-aid-server/index.js`; injectable Express handlers are in `app.js`, domain validation/serialization in `domain.js`, and repair rules/handlers in `workflow-model.js` and `workflow.js`.
 
 ## Identity and ownership
 
@@ -23,9 +23,9 @@ Provider booking read/update access is derived from the referenced service's own
 | POST `/bookings` | Token | Canonical service snapshot, authenticated customer, server status/dates; 201 insertedId + bookingId |
 | GET `/bookings` | Customer | Only their booking snapshots, including history of removed services |
 | GET `/all-bookings` | Provider | Only bookings referencing services owned by the caller; legacy providerEmail alone is insufficient |
-| PATCH `/all-bookings/:id` | Canonical service owner | Only status field; allowed values pending/working/completed; matchedCount/modifiedCount |
+| PATCH `/all-bookings/:id` | Canonical service owner | Controlled transition with status, expectedRevision and optional note; response includes updated booking and matchedCount/modifiedCount |
 
-No new role, admin, payment, availability, scheduling or messaging endpoint exists. The existing three-status workflow is retained; the extended state machine/timeline remains Phase 6.
+Phase 6 adds controlled stages, diagnosis, quotation decisions, and quotation clarification notes. Admin, payments, scheduling, general messaging and notifications remain outside this phase.
 
 ## Service validation
 
@@ -62,3 +62,47 @@ All frontend fetch paths now check HTTP/shape errors and expose loading/error/em
 No existing records were migrated, deleted or backfilled during implementation. Future removals retain reference records. Historically orphaned provider jobs require verified reconciliation; granting access based on an unverified email snapshot would restore the original vulnerability. Legacy duplicate rows remain as history; new duplicate inserts are blocked.
 
 Deploy backend before frontend. Keep the secured backend if reverting the UI; older backend code would expose soft-removed listings and resume trusting client snapshots. User approval is still needed for production deployment or any data reconciliation. This task pushed source changes only.
+
+## Phase 6 repair workflow
+
+GET `/bookings/:id` is private to the verified customer or canonical service owner. Returns booking, `repairRevision`, participant permissions, server-derived available `actions`, current quotation and full diagnosis/quotation/event history. Lists include revision and current-quotation summaries. Frontend `?view=provider` is presentation only and grants no permission.
+
+All workflow mutations require the detail response's integer `expectedRevision`. One MongoDB update compares record ID, stored status and revision, then writes status, revision, repair history and updatedAt together. Stale/concurrent writes return 409 `STALE_WORKFLOW`; refresh before retrying. New bookings initialize version 2 tracking and a customer `booking_created` event. No mutation is automatically replayed.
+
+| Method/path | Actor | Body beyond expectedRevision |
+| --- | --- | --- |
+| PATCH `/all-bookings/:id` | Provider | `status`, optional `note`; cancellation/rejection and returning to an earlier test stage require a reason |
+| POST `/bookings/:id/diagnoses` | Provider | `summary` 10–2000 chars, `issue` 3–1000, `recommendedRepair` 3–2000 |
+| POST `/bookings/:id/quotations` | Provider | `parts`, `labor`, `estimatedCompletion` 3–160 chars, optional `expiresOn` YYYY-MM-DD |
+| POST `/bookings/:id/quotations/:quoteId/decision` | Customer | `decision`: approve/reject; rejection requires `note` 3–1000 chars |
+| POST `/bookings/:id/quotations/:quoteId/questions` | Customer | `question` 3–1000 chars |
+| POST `/bookings/:id/quotations/:quoteId/questions/:questionId/answer` | Provider | `answer` 3–2000 chars; one immutable answer per question |
+| POST `/bookings/:id/cancel` | Customer | `note` 3–1000 chars; only before approval |
+
+Diagnosis, quotation and question creation return 201 `{booking}`; other mutations return 200 `{booking}` (transition retains acknowledged/matchedCount/modifiedCount). Unknown fields are rejected.
+
+Allowed provider transitions:
+
+- pending → confirmed / rejected
+- confirmed → device_received / diagnosing / cancelled (receipt optional for remote work)
+- device_received → diagnosing / cancelled
+- diagnosing → cancelled; diagnosis and quotation use dedicated endpoints
+- awaiting_approval → cancelled; revised unapproved quotes may be sent
+- approved → repairing / cancelled
+- repairing → quality_check / cancelled
+- quality_check → ready_for_collection / repairing / cancelled
+- ready_for_collection → completed / quality_check / cancelled
+
+Quote publication atomically records quotation_sent then awaiting_approval. Customer approval records explicit approved stage; rejection returns to diagnosing for revision. Completed/cancelled/rejected are terminal. Old working request alias means repairing and cannot bypass approval. Work, quality check, collection and completion require approved current quotation except the legacy policy below. Customer may cancel any preapproval booking with a reason. Provider cancellation after approval requires a reason; no refund policy is implemented.
+
+Parts: at most 20 lines with name 2–120 chars, integer quantity 1–100 and nonnegative unitPrice with cent precision. Labor follows the monetary rules. Server computes USD line totals and total in integer cents, capped at 1,000,000; submitted totals, IDs, decision actors and timestamps are rejected. Zero-cost quotes are valid. Completion is descriptive after approval, not a reserved slot. Optional expiry is end of chosen Asia/Dhaka day and must be future when sent. Expired approval returns 410 QUOTE_EXPIRED. Unanswered questions pause approval (409 CLARIFICATION_PENDING).
+
+Diagnosis/quotation versions append. A revised sent quote becomes superseded; original content/questions remain. Approved quotation content cannot be replaced. Decisions/supersession/withdrawal add metadata. Limits: 20 diagnoses, 20 quotes, 10 questions per quote, 300 events; reaching a limit fails explicitly without trimming history.
+
+Every event includes booking ID, previous/new status, verified actor UID/role, server timestamp, optional note, linked version/question IDs and customerVisible:true. All notes are shared with both participants. Reads do not mutate data.
+
+### Legacy compatibility and rollout
+
+Existing pending records enter full approval workflow on first mutation with an honest legacy_workflow_started event. Existing working/serviceStatus working records display as repairing and may finish without retroactively inventing approval; the legacy-in-progress notice remains visible. Legacy completed records stay terminal. No bulk migration runs. A trusted version-2 workflow requires a BSON Date start marker, valid revision and history arrays; JSON lookalike approval fields from the old permissive API are ignored. Malformed revisions fail closed for review. Ownership rules remain unchanged, including removed listings and denying unverifiable provider references.
+
+Deploy matching backend/frontend together. Old status dropdowns cannot execute the new workflow without revisions/approval. Do not roll back only backend to arbitrary three-status updates; that removes workflow protections.

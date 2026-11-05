@@ -73,7 +73,7 @@ test("legacy booking IDs and serviceStatus are preserved while duplicates are bl
   const {request,db,booking}=await setup(t);
   const legacy={...booking};delete legacy.userUid;delete legacy.status;legacy.serviceStatus="working";db.bookings.rows.push(legacy);
   const result=await request("POST","/bookings",bookingInput);assert.equal(result.status,409);assert.equal(result.data.bookingId,ids.booking);
-  const list=await request("GET","/bookings");assert.equal(list.data[0].status,"working");
+  const list=await request("GET","/bookings");assert.equal(list.data[0].status,"repairing");
 });
 
 test("service writes validate fields and derive owner/profile/timestamps",async t=>{
@@ -104,13 +104,13 @@ test("a forged legacy providerEmail cannot grant queue or update access",async t
   const {request,db}=await setup(t,{seedBooking:true});db.bookings.rows[0].providerEmail=users.other.email;
   assert.equal((await request("GET","/all-bookings",undefined,"other")).data.length,0);
   assert.equal((await request("PATCH",`/all-bookings/${ids.booking}`,{status:"working"},"other")).status,403);
-  assert.equal((await request("PATCH",`/all-bookings/${ids.booking}`,{status:"working"},"provider")).status,200);
-  assert.equal(db.bookings.rows[0].status,"working");
+  assert.equal((await request("PATCH",`/all-bookings/${ids.booking}`,{status:"confirmed",expectedRevision:0},"provider")).status,200);
+  assert.equal(db.bookings.rows[0].status,"confirmed");
 });
 
 test("status updates reject arbitrary values and extra fields",async t=>{
   const {request}=await setup(t,{seedBooking:true});
-  for(const value of [{status:"approved"},{status:{"$ne":null}},{status:"working",price:0}])assert.equal((await request("PATCH",`/all-bookings/${ids.booking}`,value,"provider")).status,400);
+  for(const value of [{status:"nonsense"},{status:{"$ne":null}},{status:"working",price:0}])assert.equal((await request("PATCH",`/all-bookings/${ids.booking}`,value,"provider")).status,400);
   assert.equal((await request("PATCH",`/all-bookings/${ids.booking}`,{status:"working"},"customer")).status,403);
 });
 
@@ -123,7 +123,7 @@ test("removing a listing hides it and blocks new bookings while preserving autho
   assert.equal((await request("GET","/my-services",undefined,"provider")).data.length,0);
   assert.equal((await request("GET","/bookings")).data.length,1);
   assert.equal((await request("GET","/all-bookings",undefined,"provider")).data.length,1);
-  assert.equal((await request("PATCH",`/all-bookings/${ids.booking}`,{status:"completed"},"provider")).status,200);
+  assert.equal((await request("PATCH",`/all-bookings/${ids.booking}`,{status:"confirmed",expectedRevision:0},"provider")).status,200);
 });
 
 test("orphan legacy bookings are withheld from providers when ownership cannot be verified",async t=>{

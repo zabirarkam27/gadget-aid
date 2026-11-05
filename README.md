@@ -7,11 +7,11 @@ A gadget repair service marketplace built with React/Vite, Firebase Authenticati
 - Email/password and Google sign-in, password-reset page and protected-route return navigation.
 - Service catalogue with name, area and price filters over the loaded records.
 - Customer booking history, provider work queue, service creation/edit/removal.
-- Pending, working and completed statuses, refreshed on demand (not push notifications).
+- Controlled repair stages, versioned diagnosis/quotations, customer approval/rejection, quotation questions and a shared audit timeline; refreshed on demand.
 - Dark/light themes, responsive navigation, accessible forms and confirmation dialogs.
 - Server-derived booking price/provider snapshots, ownership checks and duplicate protection.
 
-There is one account model: an authenticated user can book and offer services. Admin roles, payments, quotations, real-time notifications, reviews and reserved appointment slots are not implemented. A selected booking date is a preference.
+There is one account model: an authenticated user can book and offer services. Admin roles, payments, real-time notifications, reviews and reserved appointment slots are not implemented. A selected booking date is a preference.
 
 ## Run locally
 
@@ -45,12 +45,12 @@ For browser QA, run `npm run qa` from the client and open `http://127.0.0.1:5176
 
 ## Data and API policy
 
-New booking requests send only `serviceId`, `date` and optional `instruction`. The server loads the service, derives the price/provider/service information, attaches the authenticated customer and starts the request as pending. One customer/service/date is allowed; duplicates return HTTP409 with the existing booking reference. Existing records are not migrated or rewritten.
+New booking requests send only `serviceId`, `date` and optional `instruction`. The server loads the service, derives the price/provider/service information, attaches the authenticated customer and starts the request as pending. One customer/service/date is allowed; duplicates return HTTP409 with the existing booking reference. Existing records are not bulk migrated; repair tracking initializes on the first authorized workflow change.
 
 Removing a service hides it from the catalogue and preserves its ownership record so existing repairs remain manageable. Legacy bookings whose service was physically deleted before this change remain visible to their customer; they are withheld from provider queues when ownership cannot be verified. Recovery requires a separately reviewed reconciliation, not trusting the old client-supplied provider field.
 
-See [current API contract](docs/API_CONTRACT.md), [product plan](plan.md) and [Phase 5 validation](docs/PHASE_5_VALIDATION.md).
+See [current API contract](docs/API_CONTRACT.md), [product plan](plan.md) and [Phase 5 validation](docs/PHASE_5_VALIDATION.md) and [Phase 6 validation](docs/PHASE_6_VALIDATION.md).
 
 ## Deployment
 
-Firebase Hosting serves the frontend; `gadget-aid-server/vercel.json` points to the exported Express app. Git pushes are not a Firebase Hosting deployment. Deploy the secured backend before the matching frontend: the new backend accepts matching legacy snapshots but rejects forged values. Prefer rolling back the frontend while retaining the secured backend. An older backend would ignore soft-deletion visibility and lacks booking integrity protections. No production deployment or migration was performed by the Phase 4/5 task.
+Firebase Hosting serves the frontend; `gadget-aid-server/vercel.json` points to the exported Express app. Git pushes are not a Firebase Hosting deployment. Release matching backend/frontend together: Phase 6 replaces the old status dropdown with revision-protected workflow actions. Matching legacy booking requests remain supported, but old clients cannot bypass approval using status updates. Avoid a backend-only rollback that would reintroduce arbitrary status writes. No production deployment or migration was performed in Phase 6.
