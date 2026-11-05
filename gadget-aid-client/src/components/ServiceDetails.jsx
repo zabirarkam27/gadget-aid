@@ -1,184 +1,85 @@
-import { useContext, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { AuthContext } from "../provider/AuthProvider";
+import { useContext, useEffect, useRef, useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { FiArrowLeft, FiMapPin, FiCalendar, FiArrowUpRight } from "react-icons/fi";
 import { Helmet } from "react-helmet-async";
 import { toast } from "react-toastify";
+import { AuthContext } from "../provider/AuthProvider";
 import { API_URL } from "../utils/api";
 import { authFetch } from "../utils/authFetch";
+import { readJson } from "../utils/readJson";
+import Button from "./Button";
+import Avatar from "./ui/Avatar";
+import ServiceImage from "./ui/ServiceImage";
+import Skeleton from "./ui/Skeleton";
+import EmptyState from "./ui/EmptyState";
+import Dialog from "./ui/Dialog";
+import FormField from "./ui/FormField";
 
+const localToday = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`; };
 const ServiceDetails = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  const [service, setService] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [state, setState] = useState({ service: null, loading: true, error: "", missing: false });
+  const [attempt, setAttempt] = useState(0);
+  const [open, setOpen] = useState(false);
   const [date, setDate] = useState("");
   const [instruction, setInstruction] = useState("");
-
+  const [submitting, setSubmitting] = useState(false);
+  const [bookingError, setBookingError] = useState("");
+  const bookingLock = useRef(false);
   useEffect(() => {
-    fetch(`${API_URL}/services/${id}`)
-      .then((res) => res.json())
-      .then((data) => setService(data))
-      .catch((err) => console.error("Error fetching service:", err));
-  }, [id]);
+    const controller = new AbortController();
+    setState({ service: null, loading: true, error: "", missing: false });
+    fetch(`${API_URL}/services/${id}`,{signal:controller.signal}).then(readJson).then(service => {
+      if (!service || typeof service !== "object" || !service._id) throw new Error("Invalid service response");
+      if (!controller.signal.aborted) setState({service,loading:false,error:"",missing:false});
+    }).catch(error => {
+      if (error.name !== "AbortError" && !controller.signal.aborted) setState({service:null,loading:false,error:"The service could not be loaded. Please try again.",missing:error.status === 404 || error.status === 400});
+    });
+    return () => controller.abort();
+  },[id,attempt]);
 
-  const handleBooking = async () => {
-    const booking = {
-      serviceId: service._id,
-      serviceName: service.name,
-      serviceImage: service.image,
-      providerEmail: service.providerEmail,
-      providerName: service.providerName,
-      userName: user.displayName,
-      date,
-      instruction,
-      price: service.price,
-      status: "pending",
-    };
-
+  const handleBooking = async event => {
+    event.preventDefault();
+    if (bookingLock.current) return;
+    if (!date || date < localToday()) {setBookingError("Choose today or a future date.");return;}
+    const service = state.service;
+    bookingLock.current = true;
+    setSubmitting(true); setBookingError("");
     try {
-      const res = await authFetch(`${API_URL}/bookings`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(booking),
-      });
-
-      const data = await res.json();
-      if (data.insertedId) {
-        toast.success("Service booked successfully!");
-        setShowModal(false);
-        navigate("/booked-services");
-      } else {
-        toast.error("Booking failed.");
-      }
-    } catch (error) {
-      console.error("Error booking service:", error);
-      toast.error("Booking failed.");
-    }
+      const result = await authFetch(`${API_URL}/bookings`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        serviceId:service._id,serviceName:service.name,serviceImage:service.image,providerEmail:service.providerEmail,providerName:service.providerName,userName:user.displayName,date,instruction:instruction.trim(),price:service.price,status:"pending"
+      })}).then(readJson);
+      if (!result.insertedId) throw new Error("Booking was not confirmed");
+      toast.success("Booking request sent. You can follow it in My bookings.");
+      setOpen(false); navigate("/booked-services");
+    } catch {setBookingError("Your booking could not be confirmed. Please try again. If you lost your connection, check My bookings before submitting again.");}
+    finally {bookingLock.current = false;setSubmitting(false);}
   };
-
-  if (!service) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-base-200">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-r from-base-200 to-base-300 px-4 py-12">
-      <Helmet>
-        <title>Service Details | GadgetAid</title>
-      </Helmet>
-
-      <div className="max-w-4xl mx-auto bg-base-100 rounded-xl shadow-xl p-8 border border-base-300">
-        <h2 className="text-3xl font-bold mb-6 text-center text-primary">
-          {service.name}
-        </h2>
-
-        <img
-          src={service.image}
-          alt={service.name}
-          className="w-full rounded-lg mb-6"
-        />
-
-        <p className="text-base-content/70 mb-4">
-          <span className="font-semibold">Description:</span>{" "}
-          {service.description}
-        </p>
-
-        <div className="grid sm:grid-cols-2 gap-6 mb-6">
-          <div>
-            <p>
-              <strong>Service Area:</strong> {service.area}
-            </p>
-            <p>
-              <strong>Price:</strong> ${service.price}
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <img
-              src={service.providerPhoto}
-              alt={service.providerName}
-              className="w-12 h-12 rounded-full"
-            />
-            <p className="font-medium">{service.providerName}</p>
-          </div>
+  const {service,loading,error,missing} = state;
+  return <>
+    <Helmet><title>{service?.name || "Service details"} | GadgetAid</title></Helmet>
+    <div className="ga-container ga-section">
+      <Link to="/services" className="ga-text-link ga-muted inline-flex items-center gap-2 text-sm mb-8"><FiArrowLeft aria-hidden="true" />Back to services</Link>
+      {loading ? <div className="grid lg:grid-cols-[1.6fr_1fr] gap-8"><Skeleton className="h-96 w-full" label="Loading service details" /><Skeleton className="h-72 w-full" /></div> : error ? <div role="alert"><EmptyState title={missing ? "This service is unavailable" : "Could not load this service"} description={missing ? "The link may be incorrect, or the provider may have removed the service." : error} action={<Button onClick={() => setAttempt(value=>value+1)}>Try again</Button>} /></div> : <>
+        <div className="mb-8"><p className="ga-eyebrow mb-4">Repair service</p><h1 className="text-page font-bold max-w-3xl">{service.name}</h1><p className="ga-muted flex items-center gap-2 mt-4"><FiMapPin aria-hidden="true" />{service.area || "Ask the provider about coverage"}</p></div>
+        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-8 items-start">
+          <div className="min-w-0"><div className="aspect-[16/10] overflow-hidden rounded-2xl bg-base-300"><ServiceImage src={service.image} alt={service.name} eager /></div><div className="ga-surface p-6 sm:p-8 mt-6"><h2 className="text-section font-semibold mb-4">About this repair</h2><p className="ga-muted whitespace-pre-line break-words">{service.description || "Contact the provider for service information."}</p></div></div>
+          <aside className="ga-surface p-6 sm:p-8 lg:sticky lg:top-28"><p className="ga-muted text-sm">Listed service price</p><p className="ga-numeric text-4xl font-bold mt-2 mb-7">{service.price == null ? "Ask provider" : `$${service.price}`}</p><div className="flex items-center gap-3 py-5 border-y border-base-300"><Avatar src={service.providerPhoto || service.providerImage} name={service.providerName || "Service provider"} className="h-12 w-12" /><div className="min-w-0"><p className="ga-muted text-xs mb-1">Offered by</p><p className="font-semibold break-words">{service.providerName || "Service provider"}</p></div></div><Button className="w-full mt-6" onClick={()=>{setBookingError("");setOpen(true);}}>Request a booking <FiArrowUpRight aria-hidden="true" /></Button><p className="ga-muted text-sm mt-4">Choose your preferred date and describe the issue. The provider will need to confirm arrangements.</p><div className="mt-7 border-t border-base-300 pt-5 space-y-4 text-sm ga-muted"><p className="flex gap-2"><FiCalendar className="shrink-0 mt-1" aria-hidden="true" />Your selected date is a preference, not a reserved time slot.</p><p>Confirm repair scope, extra charges and any warranty terms with the provider before work begins.</p><p>No online payment is collected by this booking form.</p></div></aside>
         </div>
-
-        <div className="text-center">
-          <button
-            onClick={() => setShowModal(true)}
-            className="btn btn-primary px-6"
-          >
-            Book Now
-          </button>
-        </div>
-      </div>
-
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-base-100 p-6 rounded-lg max-w-lg w-full space-y-4 relative shadow-2xl">
-            <button
-              className="absolute top-2 right-2 text-base-content/50 hover:text-base-content"
-              onClick={() => setShowModal(false)}
-            >
-              ✕
-            </button>
-            <h3 className="text-xl font-bold text-primary mb-2">
-              Book Service
-            </h3>
-
-            <div className="grid grid-cols-1 gap-2">
-              <input
-                className="input input-bordered"
-                value={service.name}
-                readOnly
-              />
-              <input
-                className="input input-bordered"
-                value={service.providerName}
-                readOnly
-              />
-              <input
-                className="input input-bordered"
-                value={user.email}
-                readOnly
-              />
-              <input
-                className="input input-bordered"
-                type="date"
-                required
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-              <textarea
-                className="textarea textarea-bordered"
-                placeholder="Special instruction (address, plan, etc.)"
-                value={instruction}
-                onChange={(e) => setInstruction(e.target.value)}
-              />
-              <input
-                className="input input-bordered"
-                value={`$${service.price}`}
-                readOnly
-              />
-              <button
-                className="btn btn-primary"
-                onClick={handleBooking}
-              >
-                Purchase
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        <Dialog open={open} onClose={()=>{if(!submitting)setOpen(false);}} title="Request this repair">
+          <form onSubmit={handleBooking} className="space-y-5">
+            <div className="rounded-xl bg-base-200 p-4"><p className="font-semibold">{service.name}</p><p className="ga-muted text-sm mt-1">{service.providerName} · <span className="ga-numeric">${service.price}</span></p></div>
+            <FormField label="Your email" type="email" value={user?.email || ""} readOnly />
+            <FormField label="Preferred date" type="date" value={date} min={localToday()} required onChange={event=>setDate(event.target.value)} helper="Confirm the final appointment with your provider." disabled={submitting} />
+            <FormField label="Repair instructions" as="textarea" rows={4} maxLength={2000} placeholder="Describe the device, issue and any useful instructions." value={instruction} onChange={event=>setInstruction(event.target.value)} disabled={submitting} />
+            {bookingError && <p role="alert" className="text-error text-sm">{bookingError}</p>}
+            <Button type="submit" loading={submitting} className="w-full">{submitting ? "Sending request…" : "Send booking request"}</Button>
+          </form>
+        </Dialog>
+      </>}
     </div>
-  );
+  </>;
 };
-
 export default ServiceDetails;
