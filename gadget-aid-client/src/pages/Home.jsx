@@ -7,7 +7,7 @@ import PopularServices from "../components/PopularServices";
 import HowItWorks from "../components/HowItWorks";
 import FeaturedSection from "../components/FeaturedSection";
 import AboutUs from "../components/AboutUs";
-const shortcuts = [[FiSmartphone,"Phones","phone"],[FiMonitor,"Laptops","laptop"],[FiTv,"TV & home electronics","repair"]];
+const shortcuts = [[FiSmartphone,"Phones","phone"],[FiMonitor,"Laptops","laptop"],[FiTv,"TV repairs","tv"]];
 const faqs = [["Do I need an account to book?", "Yes. Sign in to view service details, send a booking request and access your bookings."],["Is the booking date a confirmed appointment?", "It is your preferred date. Confirm arrangements and any additional work with the provider."],["Does every repair include a warranty?", "Warranty terms depend on the service provider. Check the service description and confirm coverage before proceeding."],["How do I see repair updates?", "Open My bookings to see the latest pending, working or completed status. Refresh the page for updates."]];
 const Home = () => <>
   <Helmet><title>GadgetAid | A second life for your tech</title><meta name="description" content="Find electronic repair services, compare provider details and manage your repair bookings with GadgetAid." /></Helmet>

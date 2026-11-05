@@ -56,8 +56,9 @@ const AuthProvider = ({ children }) => {
   };
   if (loading) {
     return (
-      <p className="flex items-center justify-center h-screen">
-        <span className="loading loading-ring loading-lg"></span>
+      <p role="status" className="flex items-center justify-center h-screen">
+        <span className="sr-only">Loading your account</span>
+        <span className="loading loading-ring loading-lg" aria-hidden="true"></span>
       </p>
     );
   }

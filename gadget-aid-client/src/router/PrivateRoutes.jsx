@@ -7,7 +7,7 @@ const PrivateRoutes = ({ children }) => {
   const location = useLocation();
 
   if (loading) {
-    return <span className="loading loading-ring loading-lg"></span>;
+    return <div role="status" className="ga-container ga-section"><span className="sr-only">Checking your account</span><span className="loading loading-ring loading-lg" aria-hidden="true" /></div>;
   }
 
   if (!user) {

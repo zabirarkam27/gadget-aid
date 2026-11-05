@@ -35,7 +35,7 @@ const Registration = () => {
       toast.success("Account created. Log in to continue.");
       navigate("/login",{replace:true,state:{...location.state,email}});
     }catch(failure){
-      if(created){setCreatedEmail(email);setError("Your account was created, but we could not finish the profile setup. Log in to continue.");}
+      if(created){setCreatedEmail(email);setError("Your account was created, but we could not finish this step. Continue to login instead of creating another account.");}
       else setError(authMessage(failure));
     }finally{lock.current=false;setPending("");}
   };
