@@ -8,4 +8,3 @@ const Brand = () => (
   </Link>
 );
 export default Brand;
-

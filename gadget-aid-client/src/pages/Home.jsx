@@ -17,4 +17,3 @@ const Home = () => <>
   <section className="ga-container ga-section border-t border-base-300 grid lg:grid-cols-[1fr_1.4fr] gap-10"><div><p className="ga-eyebrow mb-3">Before you book</p><h2 className="text-page font-bold">Good questions.<br />Clear answers.</h2><Link to="/contact-us" className="inline-block text-primary mt-5 ga-text-link">Still need a hand? ↗</Link></div><div>{faqs.map(([question,answer]) => <details key={question} className="ga-faq"><summary>{question}<span aria-hidden="true">+</span></summary><p className="ga-muted pb-5 pr-5">{answer}</p></details>)}</div></section>
 </>;
 export default Home;
-
