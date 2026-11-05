@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import bannerImg from "../../public/banner.png"; 
 import Button from "./Button";
-import { Link } from "react-router-dom";
 
 const Banner = () => {
   return (
@@ -39,9 +38,7 @@ const Banner = () => {
           animate={{ scale: 1 }}
           transition={{ delay: 0.6, duration: 0.6 }}
         >
-          <Button>
-            <Link to="/services">Book a Repair</Link>
-          </Button>
+          <Button to="/services">Book a Repair</Button>
         </motion.div>
       </div>
     </div>

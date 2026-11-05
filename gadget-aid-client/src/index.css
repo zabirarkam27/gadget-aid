@@ -1,113 +1,197 @@
 @import "tailwindcss";
 
-@plugin "daisyui" {
-  themes: gadgetlight --default, gadgetdark --prefersdark;
-}
+@plugin "daisyui" { themes: false; }
 
-/* GadgetAid — Light theme
-   A clean, trustworthy "repair-shop" palette: deep teal-blue as the
-   brand color (from the existing logo gradient), warm amber as the
-   accent for calls-to-action, on a crisp neutral-slate surface. */
-@plugin "daisyui/theme" {
-  name: "gadgetlight";
-  default: true;
-  prefersdark: false;
-  color-scheme: light;
-
-  --color-base-100: #ffffff;
-  --color-base-200: #f1f5f9;
-  --color-base-300: #e2e8f0;
-  --color-base-content: #0f172a;
-
-  --color-primary: #00618f;
-  --color-primary-content: #ffffff;
-
-  --color-secondary: #0891b2;
-  --color-secondary-content: #ffffff;
-
-  --color-accent: #d97706;
-  --color-accent-content: #fffbeb;
-
-  --color-neutral: #1e293b;
-  --color-neutral-content: #f1f5f9;
-
-  --color-info: #0284c7;
-  --color-info-content: #f0f9ff;
-
-  --color-success: #16a34a;
-  --color-success-content: #f0fdf4;
-
-  --color-warning: #d97706;
-  --color-warning-content: #fffbeb;
-
-  --color-error: #dc2626;
-  --color-error-content: #fef2f2;
-
-  --radius-selector: 0.5rem;
-  --radius-field: 0.75rem;
-  --radius-box: 1rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
-}
-
-/* GadgetAid — Dark theme
-   Same brand hue family, lifted in lightness so it stays legible
-   and vivid on a dark slate surface instead of just inverting. */
 @plugin "daisyui/theme" {
   name: "gadgetdark";
-  default: false;
+  default: true;
   prefersdark: true;
   color-scheme: dark;
-
-  --color-base-100: #0f172a;
-  --color-base-200: #1a2436;
-  --color-base-300: #263349;
-  --color-base-content: #e2e8f0;
-
-  --color-primary: #38bdf8;
-  --color-primary-content: #05202f;
-
-  --color-secondary: #2dd4bf;
-  --color-secondary-content: #042b27;
-
-  --color-accent: #fbbf24;
-  --color-accent-content: #1c1400;
-
-  --color-neutral: #cbd5e1;
-  --color-neutral-content: #0f172a;
-
-  --color-info: #38bdf8;
-  --color-info-content: #05202f;
-
-  --color-success: #4ade80;
-  --color-success-content: #052e13;
-
-  --color-warning: #fbbf24;
-  --color-warning-content: #1c1400;
-
-  --color-error: #f87171;
-  --color-error-content: #2b0a0a;
-
+  --color-base-100: #0d2233;
+  --color-base-200: #071827;
+  --color-base-300: #123047;
+  --color-base-content: #f3f8fc;
+  --color-primary: #35c6e6;
+  --color-primary-content: #071827;
+  --color-secondary: #91ddec;
+  --color-secondary-content: #071827;
+  --color-accent: #18a6c8;
+  --color-accent-content: #071827;
+  --color-neutral: #123047;
+  --color-neutral-content: #f3f8fc;
+  --color-info: #35c6e6;
+  --color-info-content: #071827;
+  --color-success: #35b982;
+  --color-success-content: #071827;
+  --color-warning: #e9b44c;
+  --color-warning-content: #071827;
+  --color-error: #e56b6f;
+  --color-error-content: #071827;
   --radius-selector: 0.5rem;
   --radius-field: 0.75rem;
   --radius-box: 1rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
-  --depth: 1;
+  --depth: 0;
   --noise: 0;
+  --ga-text-muted: #a9bdca;
+  --ga-border: #557b90;
+  --ga-border-subtle: #244255;
+  --ga-shadow: 0 12px 32px rgb(0 0 0 / 0.16);
+}
+
+@plugin "daisyui/theme" {
+  name: "gadgetlight";
+  default: false;
+  prefersdark: false;
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #f0f7fa;
+  --color-base-300: #dcebf2;
+  --color-base-content: #102c3e;
+  --color-primary: #006b85;
+  --color-primary-content: #ffffff;
+  --color-secondary: #155e75;
+  --color-secondary-content: #ffffff;
+  --color-accent: #006b85;
+  --color-accent-content: #ffffff;
+  --color-neutral: #123047;
+  --color-neutral-content: #f3f8fc;
+  --color-info: #006b85;
+  --color-info-content: #ffffff;
+  --color-success: #146c49;
+  --color-success-content: #ffffff;
+  --color-warning: #805600;
+  --color-warning-content: #ffffff;
+  --color-error: #b52e42;
+  --color-error-content: #ffffff;
+  --radius-selector: 0.5rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+  --ga-text-muted: #486577;
+  --ga-border: #7794a5;
+  --ga-border-subtle: #c6dbe5;
+  --ga-shadow: 0 12px 32px rgb(16 44 62 / 0.07);
+}
+
+@theme {
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --text-display: clamp(2.25rem, 5vw, 4rem);
+  --text-display--line-height: 1.1;
+  --text-page: clamp(1.75rem, 3.5vw, 2.5rem);
+  --text-page--line-height: 1.2;
+  --text-section: clamp(1.375rem, 2.5vw, 2rem);
+  --text-section--line-height: 1.3;
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
+  :root {
+    --ga-container: 80rem;
+    --ga-space-section: clamp(3rem, 6vw, 5rem);
+    --ga-duration: 160ms;
+    --ga-ease: cubic-bezier(0.2, 0, 0, 1);
   }
-
+  html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
   body {
-    background-color: var(--color-base-100);
+    margin: 0;
+    background-color: var(--color-base-200);
     color: var(--color-base-content);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { line-height: 1.25; text-wrap: balance; }
+  button, input, select, textarea { font: inherit; }
+  button, a, input, select, textarea, summary, [tabindex] { -webkit-tap-highlight-color: transparent; }
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 4px;
+  }
+  ::selection { background: var(--color-primary); color: var(--color-primary-content); }
+}
+
+@layer components {
+  .ga-container { width: min(100% - 2rem, var(--ga-container)); margin-inline: auto; }
+  .ga-section { padding-block: var(--ga-space-section); }
+  .ga-surface {
+    background: var(--color-base-100);
+    border: 1px solid var(--ga-border-subtle);
+    border-radius: var(--radius-box);
+    box-shadow: var(--ga-shadow);
+  }
+  .ga-muted { color: var(--ga-text-muted); }
+  .ga-numeric { font-variant-numeric: tabular-nums; }
+  .btn {
+    font-weight: 600;
+    text-transform: none;
+    transition: background-color var(--ga-duration) var(--ga-ease), color var(--ga-duration) var(--ga-ease), border-color var(--ga-duration) var(--ga-ease);
+  }
+  .ga-button { min-height: 2.75rem; gap: 0.5rem; box-shadow: none; }
+  .ga-button.btn-sm { min-height: 2.25rem; }
+  .ga-button.btn-lg { min-height: 3.25rem; }
+  .ga-button[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+  .btn:active:not(:disabled):not([aria-disabled="true"]) { filter: brightness(0.92); }
+  .input, .select, .textarea {
+    background: var(--color-base-100);
+    border-color: var(--ga-border);
+    color: var(--color-base-content);
+  }
+  .input::placeholder, .textarea::placeholder { color: var(--ga-text-muted); opacity: 1; }
+  .input:disabled, .select:disabled, .textarea:disabled { opacity: 0.6; cursor: not-allowed; }
+  .input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"] { border-color: var(--color-error); }
+  .ga-field { display: grid; gap: 0.5rem; }
+  .ga-field-label { font-size: 0.875rem; font-weight: 600; }
+  .ga-field-note { font-size: 0.875rem; line-height: 1.5; }
+  .ga-state { padding: clamp(1.5rem, 4vw, 3rem); text-align: center; }
+  .ga-skeleton { background-color: var(--color-base-300); border-radius: var(--radius-field); }
+  .ga-dialog {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(32rem, calc(100% - 2rem));
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+    border: 1px solid var(--ga-border-subtle);
+    border-radius: var(--radius-box);
+    box-shadow: var(--ga-shadow);
+  }
+  .ga-dialog::backdrop { background: rgb(0 10 20 / 0.72); }
+  .dropdown-content, .menu :where(ul) { border: 1px solid var(--ga-border-subtle); }
+  .Toastify__toast {
+    --toastify-color-light: var(--color-base-100);
+    --toastify-color-dark: var(--color-base-100);
+    --toastify-text-color-light: var(--color-base-content);
+    --toastify-text-color-dark: var(--color-base-content);
+    --toastify-color-success: var(--color-success);
+    --toastify-color-error: var(--color-error);
+    --toastify-color-warning: var(--color-warning);
+    --toastify-color-info: var(--color-info);
+    --toastify-font-family: var(--font-sans);
+    border: 1px solid var(--ga-border-subtle);
+    border-radius: var(--radius-field);
+  }
+  .Toastify__close-button { color: var(--color-base-content); }
+}
+
+@media (min-width: 48rem) {
+  .ga-container { width: min(100% - 3rem, var(--ga-container)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

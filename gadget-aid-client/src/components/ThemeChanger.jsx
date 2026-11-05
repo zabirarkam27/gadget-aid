@@ -1,31 +1,23 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+import { getTheme, setTheme, subscribeTheme } from "../utils/theme";
 
 const ThemeChanger = () => {
-  const [theme, setTheme] = useState(
-    localStorage.getItem("theme") || "gadgetlight"
-  );
+  const theme = useSyncExternalStore(subscribeTheme, getTheme);
 
   const toggleTheme = () => {
     const newTheme = theme === "gadgetlight" ? "gadgetdark" : "gadgetlight";
     setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
   };
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
-
   return (
     <label className="toggle text-base-content border-base-300">
       <input
         type="checkbox"
-        className="theme-controller"
         checked={theme === "gadgetdark"}
         onChange={toggleTheme}
         aria-label="Toggle dark mode"
       />
       <svg
-        aria-label="sun"
+        aria-hidden="true"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
       >
@@ -49,7 +41,7 @@ const ThemeChanger = () => {
       </svg>
 
       <svg
-        aria-label="moon"
+        aria-hidden="true"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
       >

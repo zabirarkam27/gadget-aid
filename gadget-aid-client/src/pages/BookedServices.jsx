@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { AuthContext } from "../provider/AuthProvider";
 import { API_URL } from "../utils/api";
 import { authFetch } from "../utils/authFetch";
+import StatusBadge from "../components/ui/StatusBadge";
 
 const BookedServices = () => {
   const { user } = useContext(AuthContext);
@@ -65,9 +66,7 @@ const BookedServices = () => {
               </p>
               <p>
                 <strong>Status:</strong>{" "}
-                <span className="capitalize">
-                  {booking.status ? booking.status : booking.serviceStatus}
-                </span>
+                <StatusBadge status={booking.status || booking.serviceStatus} />
               </p>
 
               <p>

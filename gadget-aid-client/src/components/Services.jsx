@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import ServiceCard from "./ServiceCard";
 import { API_URL } from "../utils/api";
+import FormField from "./ui/FormField";
 
 const Services = () => {
   const [services, setServices] = useState([]);
@@ -45,12 +46,12 @@ const Services = () => {
 
           {/* Search Input */}
           <div className="max-w-md mx-auto mb-10">
-            <input
+            <FormField
+              label="Search services"
               type="text"
               placeholder="Search services by name..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="input input-bordered w-full focus:input-primary"
             />
           </div>
 

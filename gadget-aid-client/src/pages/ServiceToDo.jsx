@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { AuthContext } from "../provider/AuthProvider";
 import { API_URL } from "../utils/api";
 import { authFetch } from "../utils/authFetch";
+import StatusBadge from "../components/ui/StatusBadge";
 
 const ServiceToDo = () => {
   const { user } = useContext(AuthContext);
@@ -87,9 +88,7 @@ const ServiceToDo = () => {
                 </p>
                 <p className="text-base-content/70">
                   <strong>Status:</strong>{" "}
-                  <span className="capitalize text-primary font-medium">
-                    {booking.status || "pending"}
-                  </span>
+                  <StatusBadge status={booking.status || "pending"} />
                 </p>
               </div>
 
