@@ -1,4 +1,5 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
+const DemoWorkspace = lazy(() => import("../pages/DemoWorkspace"));
 const RepairAssistant = lazy(() => import("../pages/RepairAssistant"));
 const RepairCalculator = lazy(() => import("../pages/RepairCalculator"));
 const RepairEstimate = lazy(() => import("../pages/RepairEstimate"));
@@ -36,6 +37,7 @@ const ContactUs = lazy(() => import("../pages/ContactUs"));
 const ForgotPassword = lazy(() => import("../pages/ForgotPassword"));
 
 const router = createBrowserRouter([
+  { path: "/demo", element: <Suspense fallback={<p role="status" className="ga-container ga-section">Opening demo...</p>}><DemoWorkspace /></Suspense>, errorElement: <Error /> },
   {
     path: "/",
     element: <MainLayout />,

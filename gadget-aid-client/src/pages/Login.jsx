@@ -9,6 +9,7 @@ import Button from "../components/Button";
 import AuthShell from "../components/ui/AuthShell";
 import FormField from "../components/ui/FormField";
 import PasswordField from "../components/ui/PasswordField";
+import { demoAccounts, startDemo } from "../utils/demo";
 
 const Login = () => {
   const { login, setUser } = useContext(AuthContext);
@@ -18,6 +19,20 @@ const Login = () => {
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
   const lock = useRef(false);
+  const openDemo = (account, password = account.password) => {
+    if (password !== account.password) {
+      setError("The demo email or password is incorrect.");
+      return;
+    }
+    try {
+      startDemo(account.email, password, window.sessionStorage);
+      navigate("/demo");
+    } catch {
+      setError(
+        "Demo could not start. Allow this tab's session storage and try again.",
+      );
+    }
+  };
   const authenticate = async (kind, operation) => {
     if (lock.current) return;
     lock.current = true;
@@ -37,6 +52,13 @@ const Login = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const demo = demoAccounts.find(
+      (account) => account.email === email.trim().toLowerCase(),
+    );
+    if (demo) {
+      openDemo(demo, form.get("password"));
+      return;
+    }
     authenticate("email", () => login(email.trim(), form.get("password")));
   };
   return (
@@ -123,6 +145,46 @@ const Login = () => {
             Create an account
           </Link>
         </p>
+        <section
+          className="mt-8 border-t border-base-300 pt-6"
+          aria-labelledby="demo-login-title"
+        >
+          <h2 id="demo-login-title" className="text-lg font-semibold">
+            Try a demo account
+          </h2>
+          <p className="ga-muted text-sm mt-2">
+            One click opens an editable sample workspace. These public demo
+            credentials never grant access to real accounts or data.
+          </p>
+          <div className="grid gap-4 mt-5">
+            {demoAccounts.map((account) => (
+              <div
+                key={account.role}
+                className="rounded-xl border border-base-300 p-4 space-y-3 min-w-0"
+              >
+                <h3 className="font-semibold">Demo {account.label}</h3>
+                <dl className="text-sm space-y-2">
+                  <div>
+                    <dt className="ga-muted">Email</dt>
+                    <dd className="break-all">{account.email}</dd>
+                  </div>
+                  <div>
+                    <dt className="ga-muted">Password</dt>
+                    <dd className="break-all font-mono">{account.password}</dd>
+                  </div>
+                </dl>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled={!!pending}
+                  onClick={() => openDemo(account)}
+                >
+                  Log in as Demo {account.label}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
       </AuthShell>
     </>
   );

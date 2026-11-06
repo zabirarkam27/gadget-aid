@@ -65,7 +65,11 @@ For browser QA, run `npm run qa` from the client and open `http://127.0.0.1:5176
 
 ## Demo Admin and Super Admin access
 
-Start the isolated demo from `gadget-aid-client`:
+The [live login page](https://gadget-aid.web.app/login) and normal localhost login show **Log in as Demo Admin** and **Log in as Demo Super Admin** buttons with these public synthetic credentials. Clicking opens `/demo`; entering the same credentials in the login form also works.
+
+The public demo is an editable, browser-only sample workspace: publish/hide sample listings, review sample technicians, restrict/restore sample customers, resolve a sample dispute and inspect its activity log. Demo Super Admin can additionally grant/revoke sample Admin access. Confirm changes with a reason. Edits reset on reload; the chosen demo role persists only in this tab's session storage. No password, Firebase token or real role is stored or granted; demo actions never call the production API. Existing real sign-in is unaffected.
+
+The separate developer QA environment remains available from `gadget-aid-client`:
 
 ```powershell
 npm run qa
@@ -78,7 +82,7 @@ Open [the demo login page](http://127.0.0.1:5176/login) in your local browser an
 | Super Admin | `superadmin@example.test` | `GadgetAidDemo123!` | **Super Admin** |
 | Admin | `admin@example.test` | `GadgetAidDemo123!` | **Admin** |
 
-These are public, synthetic QA credentials, not Firebase accounts or real security credentials. They work only on the isolated QA server at port 5176, not the normal app at port 5173 or the deployed website. The demo session survives page refresh in the same browser tab; no password is stored. Real operator accounts are configured separately and their passwords are never published here. For real account setup, see [Super Admin bootstrap and technician onboarding](docs/PHASE_9_VALIDATION.md#bootstrap-and-onboarding). Restarting the QA server resets demo data.
+These are public synthetic demo credentials, not Firebase accounts or real security credentials. The developer QA app has its own memory API and full synthetic workflows; it is separate from the new browser-only public demo. Real operator accounts are configured separately and their passwords are never published here. For real account setup, see [Super Admin bootstrap and technician onboarding](docs/PHASE_9_VALIDATION.md#bootstrap-and-onboarding). Restarting the QA server resets QA data.
 
 ## Real login and account security
 
