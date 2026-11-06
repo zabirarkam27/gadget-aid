@@ -1,0 +1,111 @@
+{
+  "date": "2026-11-06",
+  "environment": "Isolated synthetic QA; AI result used a fake classifier, not a live provider",
+  "checks": [
+    {
+      "state": "Guided result",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "state": "Guided result",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "state": "Guided result",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "state": "Guided result",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "state": "Guided result",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "state": "Safety result",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "state": "Safety result",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "state": "Safety result",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "state": "Safety result",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "state": "Safety result",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "state": "Simulated AI result",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "state": "Simulated AI result",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "state": "Simulated AI result",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "state": "Simulated AI result",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "state": "Simulated AI result",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    }
+  ]
+}

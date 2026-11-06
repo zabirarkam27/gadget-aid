@@ -3,6 +3,7 @@ import { AccessContext } from "../../provider/AccessContext";
 import { NavLink } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 const links = [
+  ["/repair-assistant", "Repair assistant"],
   ["/devices", "My devices"],
   ["/account-access", "Account access"],
   ["/account-security", "Account security"],

@@ -5,7 +5,7 @@ A gadget repair service marketplace built with React/Vite, Firebase Authenticati
 ## Current features
 
 - Email/password and Google sign-in, password-reset page and protected-route return navigation.
-- Service catalogue with name, area and price filters over the loaded records.
+- Paginated service catalogue with server-side search, category/area/price filters and newest/price sorting.
 - Customer booking history, provider work queue, service creation/edit/removal.
 - Controlled repair stages, versioned diagnosis/quotations, customer approval/rejection, quotation questions and a shared audit timeline; refreshed on demand.
 - Dark/light themes, responsive navigation, accessible forms and confirmation dialogs.
@@ -18,6 +18,7 @@ A gadget repair service marketplace built with React/Vite, Firebase Authenticati
 - Private Gadget Passports with serial protection, booking-linked repair history, private QR links and confirmed JSON export/device deletion.
 - Provider-issued repair warranty terms, recorded-handover eligibility and customer claims with reasoned provider decisions.
 - Encrypted private receipt photos with owner-only upload/download, image validation, quotas and atomic deletion.
+- Guided repair assistant with preliminary issue categories, safety overrides and real service matching. Optional consented AI classification is integrated but not activated without a server AI Gateway key; guided results are labeled rules-based. See [Phase 11 privacy/setup](docs/PHASE_11_PRIVACY.md).
 
 Signed-in customers can book and review eligible repairs. Offering services requires approved Technician access. Admin and Super Admin permissions are server controlled; public visitors can browse. Providers can offer date requests or reserved one-hour appointments in Bangladesh time. Profile claims are self-reported; completed-booking reviews are checked against server-recorded handover. Payments and instant push notifications are not implemented.
 

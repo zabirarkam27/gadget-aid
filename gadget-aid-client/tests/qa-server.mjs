@@ -70,6 +70,7 @@ for (const key of ["provider", "other"]) {
 }
 const qaStartedAt = Date.now();
 const api = createApp({
+  repairClassifier: process.env.QA_ASSISTANT_AI === "1" ? async () => ({ issues: ["power"], questions: ["onset", "message"] }) : null,
   receiptVault: createReceiptVault({
     activeKeyId: "qa-v1",
     keys: { "qa-v1": randomBytes(32).toString("base64") },

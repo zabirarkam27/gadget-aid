@@ -1,4 +1,5 @@
 import { lazy } from "react";
+const RepairAssistant = lazy(() => import("../pages/RepairAssistant"));
 import CapabilityGate from "../router/CapabilityGate";
 const AdminWorkspace = lazy(() => import("../pages/AdminWorkspace"));
 const AccountAccess = lazy(() => import("../pages/AccountAccess"));
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <Error />,
     children: [
+      { path: "/repair-assistant", element: <PrivateRoutes><RepairAssistant /></PrivateRoutes> },
       {
         path: "/devices",
         element: (

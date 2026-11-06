@@ -39,6 +39,7 @@ test(
       await db.roleGrants.insertOne(grant);
     let failMode = "";
     const app = createApp({
+      repairClassifier: async () => ({ issues: ["power"], questions: ["onset"] }),
       receiptVault: createReceiptVault({
         activeKeyId: "qa-v1",
         keys: { "qa-v1": randomBytes(32).toString("base64") },
@@ -193,6 +194,14 @@ test(
     assert.deepEqual(workingPage.data.summary.map(c => c.value), [0, 1, 0]);
     await db.bookings.deleteMany({ serviceName: "Pagination booking" });
     await db.services.deleteMany({ name: /^Pagination QA / });
+    // Shared AI quota guards must survive real concurrent transaction retries.
+    const assistantInput = { category: "Laptop", brand: "", model: "", symptoms: "Laptop does not start at all", onset: "", danger: false, useAi: true, consentVersion: "repair-ai-v1" };
+    for (let i = 0; i < 8; i++) assert.equal((await request("POST", "/repair-assistant", assistantInput, "customer")).data.mode, "ai");
+    const competingAi = await Promise.all(Array.from({ length: 6 }, () => request("POST", "/repair-assistant", assistantInput, "customer")));
+    assert.equal(competingAi.filter(r => r.data.mode === "ai").length, 2);
+    assert.ok(competingAi.filter(r => r.data.mode !== "ai").every(r => r.status === 429));
+    assert.equal((await db.operationMeta.findOne({ _id: "assistant:user:qa-customer" })).count, 10);
+    assert.equal((await db.operationMeta.findOne({ _id: "assistant:global" })).count, 10);
     const a = defaultAvailability();
     const body = {
       businessName: "Local integration repairs",

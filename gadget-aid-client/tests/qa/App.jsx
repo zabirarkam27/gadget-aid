@@ -1,4 +1,5 @@
 import CapabilityGate from "../../src/router/CapabilityGate";
+import RepairAssistant from "../../src/pages/RepairAssistant";
 import DemoLogin from "./DemoLogin";
 import AccountSecurity from "../../src/pages/AccountSecurity";
 import Devices from "../../src/pages/Devices";
@@ -44,6 +45,7 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <ErrorPage />,
     children: [
+      { path: "repair-assistant", element: protectedPage(<RepairAssistant />) },
       {
         path: "devices",
         element: protectedPage(<Devices key="device-list" />),

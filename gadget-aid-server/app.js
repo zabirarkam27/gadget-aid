@@ -1,4 +1,5 @@
 const { serviceCategory } = require("./categories");
+const { createRepairAssistant } = require("./repair-assistant");
 const { listPage, catalogueFilter, input: listInput, search: listSearch } = require("./listings");
 const { createPassports } = require("./passports");
 const { createReceipts, MAX_BYTES } = require("./receipts");
@@ -40,6 +41,7 @@ const createApp = ({
   appUrl = "http://localhost:5173",
   identityDirectory = null,
   receiptVault = null,
+  repairClassifier = null,
 }) => {
   const app = express();
   app.disable("x-powered-by");
@@ -121,6 +123,9 @@ const createApp = ({
     }
   };
   app.get("/", (req, res) => res.send("Gadget aid server is running"));
+  const repairAssistant = createRepairAssistant({ collections, clock, classify: repairClassifier });
+  app.get("/repair-assistant/config", authenticated, repairAssistant.configuration);
+  app.post("/repair-assistant", authenticated, repairAssistant.suggest);
   app.get("/health", async (req, res) => {
     await collections();
     res.json({ status: "ready" });

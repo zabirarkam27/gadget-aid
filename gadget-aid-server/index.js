@@ -1,4 +1,5 @@
 const { createDatabase } = require("./database");
+const { createRepairClassifier } = require("./repair-ai");
 require("dotenv").config();
 const dns = require("node:dns");
 const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -68,6 +69,7 @@ if (
   throw new Error("Production email links require an HTTPS APP_URL.");
 const app = createApp({
   receiptVault: receiptVaultFromEnv(),
+  repairClassifier: createRepairClassifier(),
   identityDirectory: {
     getUser: (uid) => admin.auth().getUser(uid),
     listUsers: (limit, cursor) => admin.auth().listUsers(limit, cursor),
