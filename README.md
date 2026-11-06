@@ -25,6 +25,8 @@ Phase 9 adds platform operations at `/admin`: overview, masked accounts, technic
 
 Phase 10 adds **My devices** at `/devices`. Add a private passport, then link it from your booking's **Gadget Passport & warranty** panel. Only the passport owner can read its record, including through its QR link. Providers can issue repair-specific warranty terms after recorded handover; customers can submit claims within the stated dates. **Private receipts** now accepts JPEG/PNG photos up to 3 MiB with consent, image normalization and AES-256-GCM storage encryption. PDF uploads remain unavailable. See [receipt storage setup/retention](docs/RECEIPT_STORAGE.md) and [Phase 10 privacy, warranty rules and validation](docs/PHASE_10_VALIDATION.md).
 
+Private receipt storage is live at [GadgetAid My devices](https://gadget-aid.web.app/devices). Both frontend and backend have been deployed with the existing encryption key preserved. [Release verification and operation notes](docs/LIVE_RECEIPT_RELEASE.md).
+
 ## Run locally
 
 Use the existing `.env.example` files to configure each application. Keep actual environment files out of Git. `VITE_*` values are bundled into the browser and must not contain privileged secrets.

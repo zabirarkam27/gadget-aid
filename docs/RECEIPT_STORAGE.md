@@ -1,5 +1,7 @@
 # Private receipt image storage
 
+Production is now enabled at [GadgetAid My devices](https://gadget-aid.web.app/devices). The existing encryption key was configured as a Vercel production secret and both live backend/frontend were released and verified. See [live release evidence and operation notes](LIVE_RECEIPT_RELEASE.md).
+
 Receipt upload is enabled for device owners on the matched frontend/backend. It uses the existing MongoDB Atlas deployment with application-encrypted content; no public bucket, Firebase Storage download token or new cloud billing account is created. This supersedes Phase 10's initial upload-unavailable limitation for JPEG/PNG photos only.
 
 ## Owner workflow and access policy
@@ -37,7 +39,7 @@ Back up the key in a restricted secret manager or encrypted operator backup befo
 
 For deployed hosting, configure the **same** server secret used by the files, then deploy the matched client/server. A Git push does not copy local `.env` values. `RECEIPT_KEY_ID` identifies the active key; `RECEIPT_ENCRYPTION_KEY` is a base64-encoded random 32-byte key. `RECEIPT_PREVIOUS_KEYS` optionally maps old key IDs to their base64 keys for continued reads. Rotation writes with the new active key but does not automatically re-encrypt old files; retain the old key material until all dependent files and retained backups are retired. Do not paste example or demo keys into production.
 
-Without a valid configured vault, uploads fail closed and the UI reports unavailable storage. Missing old keys or failed authentication tags block content download; confirmed owner deletion remains available. The server needs Node >=20.9 and a supported Sharp native runtime (verified locally on Node 24). Receipt parsing stays below the common 4.5 MB serverless request limit, but deployment/platform permissions, native-package installation and capacity still require verification on that host. No external hosting deployment was performed here.
+Without a valid configured vault, uploads fail closed and the UI reports unavailable storage. Missing old keys or failed authentication tags block content download; confirmed owner deletion remains available. The server needs Node >=20.9 and a supported Sharp native runtime (verified locally on Node 24 and live on Vercel Node 22). Receipt parsing stays below the common 4.5 MB serverless request limit. Native-package installation, encrypted upload/download, origin checks and access control were verified on the deployed host; capacity/load beyond the bounded smoke test has not been measured.
 
 ## API
 

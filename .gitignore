@@ -27,3 +27,7 @@ gadget-aid-server/.env
 Thumbs.db
 # Local credentials are never committed.
 /Credentials.txt
+
+# Local Vercel project links and deployment environment downloads.
+**/.vercel/
+**/.env.production.local
