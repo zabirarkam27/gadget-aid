@@ -50,6 +50,23 @@ From the server: `npm test`. Backend tests start temporary local HTTP servers wi
 
 For browser QA, run `npm run qa` from the client and open `http://127.0.0.1:5176/booked-services`. This is a separate test root/API using demo customer/provider identities and memory records. Its toolbar labels the environment, permits switching test identity and simulating offline requests. It never uses real authentication or a real database. Restart it to reset demo data. It is not a production build entry; do not deploy the QA server. Ports 5055 and 5176 must be free.
 
+## Demo Admin and Super Admin access
+
+Start the isolated demo from `gadget-aid-client`:
+
+```powershell
+npm run qa
+```
+
+Open [the demo admin workspace](http://127.0.0.1:5176/admin), then choose the role from the **Demo session** dropdown at the top.
+
+| Demo role | Demo email | Password | Demo session option |
+| --- | --- | --- | --- |
+| Super Admin | `superadmin@example.test` | Not required | **Super Admin** |
+| Admin | `admin@example.test` | Not required | **Admin** |
+
+These are synthetic QA identities selected through the demo toolbar, not email/password login accounts. They work only on the isolated QA server at port 5176, not the normal app at port 5173 or the deployed website. No real Firebase Admin/Super Admin account has been created. For real account setup, see [Super Admin bootstrap and technician onboarding](docs/PHASE_9_VALIDATION.md#bootstrap-and-onboarding). Restarting the QA server resets demo changes.
+
 ## Data and API policy
 
 New booking requests send only `serviceId`, `date` and optional `instruction`. The server loads the service, derives the price/provider/service information, attaches the authenticated customer and starts the request as pending. One customer/service/date is allowed; duplicates return HTTP409 with the existing booking reference. Existing records are not bulk migrated; repair tracking initializes on the first authorized workflow change.
