@@ -1,0 +1,155 @@
+{
+  "environment": "public browser-only synthetic demo",
+  "checks": [
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "demo-admin-audit",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "demo-admin-audit",
+      "width": 390
+    },
+    {
+      "client": 768,
+      "document": 768,
+      "screen": "demo-admin-audit",
+      "width": 768
+    },
+    {
+      "client": 1366,
+      "document": 1366,
+      "screen": "demo-admin-audit",
+      "width": 1366
+    },
+    {
+      "client": 1440,
+      "document": 1440,
+      "screen": "demo-admin-audit",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "demo-login-cards",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "demo-login-cards",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "demo-login-cards",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "demo-login-cards",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "demo-login-cards",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "demo-super-admin-access",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "demo-super-admin-access",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "demo-super-admin-access",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "demo-super-admin-access",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "demo-super-admin-access",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "demo-admin-overview",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "demo-admin-overview",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "demo-admin-overview",
+      "width": 768
+    },
+    {
+      "client": 1366,
+      "document": 1366,
+      "screen": "demo-admin-overview",
+      "width": 1366
+    },
+    {
+      "client": 1440,
+      "document": 1440,
+      "screen": "demo-admin-overview",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "demo-change-dialog",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "demo-change-dialog",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "demo-change-dialog",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "demo-change-dialog",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "demo-change-dialog",
+      "width": 1440
+    }
+  ]
+}
