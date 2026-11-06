@@ -8,7 +8,7 @@
     "email:deliver": "node scripts/deliver-email.cjs",
     "email:check": "node scripts/check-email.cjs",
     "reviews:moderate": "node scripts/moderate-review.cjs",
-    "test:mongo": "node --test tests/mongo.integration.cjs",
+    "test:mongo": "node --test tests/mongo.integration.cjs tests/phase12.mongo.cjs",
     "admin:bootstrap": "node scripts/super-admin.cjs",
     "receipts:configure": "node scripts/configure-receipts.cjs"
   },

@@ -1,0 +1,537 @@
+{
+  "environment": "isolated synthetic QA; no production identities or records",
+  "widths": [
+    360,
+    390,
+    768,
+    1366,
+    1440
+  ],
+  "checks": [
+    {
+      "screen": "Calculator with results",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Calculator with results",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Calculator with results",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Calculator with results",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Calculator with results",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Listed-price estimate result",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Listed-price estimate result",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Listed-price estimate result",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Listed-price estimate result",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Listed-price estimate result",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Service comparison",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Service comparison",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Service comparison",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Service comparison",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Service comparison",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Three-service comparison",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Three-service comparison",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Three-service comparison",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Three-service comparison",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Three-service comparison",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Saved technician list",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Saved technician list",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Saved technician list",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Saved technician list",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Saved technician list",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Points wallet and private ledger",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Points wallet and private ledger",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Points wallet and private ledger",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Points wallet and private ledger",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Points wallet and private ledger",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Provider opt-in discount quote form",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Provider opt-in discount quote form",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Provider opt-in discount quote form",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Provider opt-in discount quote form",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Provider opt-in discount quote form",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Customer points approval and cost table",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Customer points approval and cost table",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Customer points approval and cost table",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Customer points approval and cost table",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Customer points approval and cost table",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Wallet after actual synthetic redemption",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Wallet after actual synthetic redemption",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Wallet after actual synthetic redemption",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Wallet after actual synthetic redemption",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Wallet after actual synthetic redemption",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Private provider example images",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Private provider example images",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Private provider example images",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Private provider example images",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Private provider example images",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Customer public-image consent preview",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Customer public-image consent preview",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Customer public-image consent preview",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Customer public-image consent preview",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Customer public-image consent preview",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Audited admin gallery inspection",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Audited admin gallery inspection",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Audited admin gallery inspection",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Audited admin gallery inspection",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Audited admin gallery inspection",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Approved public gallery",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Approved public gallery",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Approved public gallery",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Approved public gallery",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Approved public gallery",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Recycling information and honest no-partner state",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Recycling information and honest no-partner state",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Recycling information and honest no-partner state",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Recycling information and honest no-partner state",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Recycling information and honest no-partner state",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    },
+    {
+      "screen": "Discount points programme policy",
+      "width": 360,
+      "actual": 360,
+      "client": 345,
+      "document": 345
+    },
+    {
+      "screen": "Discount points programme policy",
+      "width": 390,
+      "actual": 390,
+      "client": 375,
+      "document": 375
+    },
+    {
+      "screen": "Discount points programme policy",
+      "width": 768,
+      "actual": 768,
+      "client": 753,
+      "document": 753
+    },
+    {
+      "screen": "Discount points programme policy",
+      "width": 1366,
+      "actual": 1366,
+      "client": 1351,
+      "document": 1351
+    },
+    {
+      "screen": "Discount points programme policy",
+      "width": 1440,
+      "actual": 1440,
+      "client": 1425,
+      "document": 1425
+    }
+  ]
+}

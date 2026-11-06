@@ -18,6 +18,12 @@ const collectionNames = {
   warranties: "repairWarranties",
   receipts: "deviceReceipts",
   receiptFiles: "privateReceiptFiles",
+  savedTechnicians: "savedTechnicians",
+  examples: "repairExamples",
+  exampleFiles: "repairExampleFiles",
+  loyaltyProfiles: "loyaltyProfiles",
+  loyaltyCredits: "loyaltyCredits",
+  loyaltySpends: "loyaltySpends",
 };
 const createDatabase = (client, databaseName = "gadgetAidDB") => {
   const bind = (session) =>

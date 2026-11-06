@@ -19,6 +19,9 @@ A gadget repair service marketplace built with React/Vite, Firebase Authenticati
 - Provider-issued repair warranty terms, recorded-handover eligibility and customer claims with reasoned provider decisions.
 - Encrypted private receipt photos with owner-only upload/download, image validation, quotas and atomic deletion.
 - Guided repair assistant with preliminary issue categories, safety overrides and real service matching. Optional consented AI classification is integrated but not activated without a server AI Gateway key; guided results are labeled rules-based. See [Phase 11 privacy/setup](docs/PHASE_11_PRIVACY.md).
+- Repair/replace calculator, nonbinding estimates from actual listings, comparison of up to three services, private saved technicians and recycling information.
+- Before/after gallery with encrypted private drafts, exact customer consent and audited admin moderation before public display; participants can withdraw examples.
+- Discount points with a private ledger, one-year expiry and explicit provider-funded quotation offers plus customer redemption consent. See [Phase 12 rules](docs/PHASE_12_DESIGN.md) and [validation](docs/PHASE_12_VALIDATION.md).
 
 Signed-in customers can book and review eligible repairs. Offering services requires approved Technician access. Admin and Super Admin permissions are server controlled; public visitors can browse. Providers can offer date requests or reserved one-hour appointments in Bangladesh time. Profile claims are self-reported; completed-booking reviews are checked against server-recorded handover. Payments and instant push notifications are not implemented.
 
@@ -27,6 +30,8 @@ Phase 9 adds platform operations at `/admin`: overview, masked accounts, technic
 Phase 10 adds **My devices** at `/devices`. Add a private passport, then link it from your booking's **Gadget Passport & warranty** panel. Only the passport owner can read its record, including through its QR link. Providers can issue repair-specific warranty terms after recorded handover; customers can submit claims within the stated dates. **Private receipts** now accepts JPEG/PNG photos up to 3 MiB with consent, image normalization and AES-256-GCM storage encryption. PDF uploads remain unavailable. See [receipt storage setup/retention](docs/RECEIPT_STORAGE.md) and [Phase 10 privacy, warranty rules and validation](docs/PHASE_10_VALIDATION.md).
 
 Private receipt storage is live at [GadgetAid My devices](https://gadget-aid.web.app/devices). Both frontend and backend have been deployed with the existing encryption key preserved. [Release verification and operation notes](docs/LIVE_RECEIPT_RELEASE.md).
+
+Phase 12 is implemented and verified locally. Its six features have not been deployed to the production website. Points offer 20 per eligible completed repair, 40 per eligible referral, and 100 points for 5% off labor up to USD 5 when the provider explicitly funds that quotation. Points mature after seven days and expire 365 days after the qualifying handover. See the policy for eligibility, caps and cancellation accounting.
 
 ## Run locally
 

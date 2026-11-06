@@ -277,6 +277,7 @@ const AdminWorkspace = () => {
       eyebrow={labelRole(access.role)}
       description="Review platform activity and act on exact records. Sensitive changes require a reason and confirmation."
     >
+      <div className="mb-5"><Button to="/admin/gallery" variant="outline">Repair gallery moderation ↗</Button></div>
       <div className="grid lg:grid-cols-[13rem_minmax(0,1fr)] gap-6 items-start">
         <nav
           aria-label="Operations sections"

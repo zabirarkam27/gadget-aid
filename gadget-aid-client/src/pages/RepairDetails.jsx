@@ -1,5 +1,6 @@
 import BookingDisputes from "../components/dashboard/BookingDisputes";
 import BookingPassport from "../components/dashboard/BookingPassport";
+import BookingExample from "../components/gallery/BookingExample";
 import BookingReview from "../components/dashboard/BookingReview";
 import BookingConversation from "../components/dashboard/BookingConversation";
 import { useEffect, useRef, useState } from "react";
@@ -51,6 +52,7 @@ const RepairWorkspace = ({ id }) => {
     recommendedRepair: "",
   });
   const [parts, setParts] = useState([]),
+    [loyaltyDiscount,setLoyaltyDiscount]=useState(false),
     [labor, setLabor] = useState(""),
     [estimate, setEstimate] = useState(""),
     [expiry, setExpiry] = useState("");
@@ -103,6 +105,7 @@ const RepairWorkspace = ({ id }) => {
         setTarget("");
         setNote("");
         setAccepted(false);
+        setLoyaltyDiscount(false);
         setQuestion("");
         setSuccess(
           "Repair updated. Both participants can see this after refreshing.",
@@ -292,7 +295,7 @@ const RepairWorkspace = ({ id }) => {
                           />
                           <span>
                             I reviewed quotation {quote.number} and authorize
-                            this repair for {priceLabel(quote.total)}.
+                            this repair for {priceLabel(quote.total)}.{quote.loyalty?" I also authorize redemption of 100 available points for this provider-funded labor discount.":""}
                           </span>
                         </label>
                         <div className="flex flex-wrap gap-3">
@@ -302,6 +305,7 @@ const RepairWorkspace = ({ id }) => {
                             onClick={() =>
                               send(`${base}/quotations/${quote.id}/decision`, {
                                 decision: "approve",
+                                ...(quote.loyalty?{redeemPoints:true}:{}),
                                 note,
                               })
                             }
@@ -469,6 +473,7 @@ const RepairWorkspace = ({ id }) => {
                             unitPrice: Number(p.unitPrice),
                           })),
                           labor: Number(labor),
+                          loyaltyDiscount,
                           estimatedCompletion: estimate,
                           expiresOn: expiry,
                         });
@@ -566,8 +571,9 @@ const RepairWorkspace = ({ id }) => {
                           onChange={(e) => setExpiry(e.target.value)}
                         />
                         <p className="font-semibold">
-                          Quotation total: {priceLabel(total)}
+                          Quotation total: {priceLabel(total-(loyaltyDiscount?Math.min(500,Math.floor(Math.round(Number(labor||0)*100)*5/100))/100:0))}
                         </p>
+                        <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="checkbox checkbox-sm shrink-0" checked={loyaltyDiscount} onChange={e=>setLoyaltyDiscount(e.target.checked)}/><span>I explicitly fund a 5% labor-only discount, capped at $5 USD, for 100 customer points. Parts are not discounted. The customer must approve this quotation and have 100 available points. I will honor the resulting quotation; GadgetAid does not reimburse this discount.</span></label>
                         <Button type="submit" loading={saving}>
                           Send quotation for approval
                         </Button>
@@ -614,6 +620,7 @@ const RepairWorkspace = ({ id }) => {
                 <BookingReview bookingId={id} status={booking.status} />
                 <BookingDisputes bookingId={id} />
                 <BookingPassport bookingId={id} status={booking.status} />
+                <BookingExample bookingId={id}/>
                 <Panel title="Repair timeline">
                   {!booking.repair.events.length ? (
                     <p className="ga-muted">
@@ -737,8 +744,9 @@ const Quote = ({ quote }) => (
           ))}
           <tr>
             <th colSpan={3}>Labor</th>
-            <td>{priceLabel(quote.labor)}</td>
+            <td>{priceLabel(quote.loyalty?quote.loyalty.originalLabor:quote.labor)}</td>
           </tr>
+          {quote.loyalty&&<tr><th colSpan={3}>Points discount (100 points; labor only)</th><td>−{priceLabel(quote.loyalty.discount)}</td></tr>}
           <tr className="font-bold">
             <th colSpan={3}>Total (USD)</th>
             <td>{priceLabel(quote.total)}</td>

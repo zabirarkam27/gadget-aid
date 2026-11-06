@@ -12,6 +12,7 @@ const ServiceCard = ({ service }) => (
       <p className="ga-muted text-sm mt-3 line-clamp-2">{service.description || "Open the service for more information."}</p>
       <div className="mt-5 flex items-center gap-2.5"><Avatar src={service.providerPhoto || service.providerImage} name={service.providerName || "Service provider"} className="h-8 w-8" /><span className="text-sm truncate">{service.providerName || "Service provider"}</span></div>
       <div className="mt-auto pt-6 flex flex-wrap items-center justify-between gap-3"><p className="ga-numeric text-xl font-bold">{service.price !== undefined && service.price !== null ? `$${service.price}` : "Ask provider"}</p><Button to={`/services/${service._id}`} variant="outline" size="sm" aria-label={`View ${service.name || "service"}`}>View details <FiArrowUpRight aria-hidden="true" /></Button></div>
+      <Button to={`/compare-services?ids=${service._id}`} variant="ghost" size="sm" className="mt-3" aria-label={`Compare ${service.name || "service"}`}>Compare service</Button>
     </div>
   </article>
 );

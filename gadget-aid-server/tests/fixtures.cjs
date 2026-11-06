@@ -286,6 +286,12 @@ const createFixture = ({
     createdAt: fixedTime,
   };
   const db = {
+    savedTechnicians: new MemoryCollection(),
+    examples: new MemoryCollection(),
+    exampleFiles: new MemoryCollection(),
+    loyaltyProfiles: new MemoryCollection(),
+    loyaltyCredits: new MemoryCollection(),
+    loyaltySpends: new MemoryCollection(),
     devices: new MemoryCollection(),
     receipts: new MemoryCollection(),
     receiptFiles: new MemoryCollection(),

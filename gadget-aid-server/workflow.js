@@ -1,4 +1,6 @@
+const {retryTransaction}=require("./transaction-retry");
 const { releaseReservation, runTransaction } = require("./technicians");
+const {loyaltyTransition,discountForLabor,POLICY:LOYALTY_POLICY}=require("./loyalty");
 const { ObjectId } = require("mongodb");
 const {
   fail,
@@ -260,6 +262,7 @@ const createWorkflow = ({ collections, clock, serializeBooking }) => {
       repair: next.repair,
       updatedAt: now,
     };
+    if(next.status==="completed"&&workflowStatus(booking)!=="completed"&&role==="provider")Object.assign(update,{loyaltyPolicyVersion:LOYALTY_POLICY,loyaltyCompletedAt:now,loyaltyRewardChecked:false});
     const commit = async (target) => {
       const result = await target.bookings.updateOne(filter, { $set: update });
       if (!result.matchedCount)
@@ -268,6 +271,7 @@ const createWorkflow = ({ collections, clock, serializeBooking }) => {
           "This repair has changed. Refresh it before trying again.",
           "STALE_WORKFLOW",
         );
+      if(currentQuote(next)?.loyalty||currentQuote(booking)?.loyalty)await loyaltyTransition(target,booking,next,req,now);
       if (
         booking.appointment?.startsAt instanceof Date &&
         ["cancelled", "rejected"].includes(next.status)
@@ -275,11 +279,13 @@ const createWorkflow = ({ collections, clock, serializeBooking }) => {
         await releaseReservation(target, booking);
     };
     if (
-      booking.appointment?.startsAt instanceof Date &&
-      ["cancelled", "rejected"].includes(next.status)
-    )
-      await runTransaction(db, commit);
-    else await commit(db);
+      !!currentQuote(next)?.loyalty || !!currentQuote(booking)?.loyalty ||
+      (booking.appointment?.startsAt instanceof Date &&
+      ["cancelled", "rejected"].includes(next.status))
+    ) {
+      if(currentQuote(next)?.loyalty||currentQuote(booking)?.loyalty)await retryTransaction(db,commit);
+      else await runTransaction(db,commit);
+    } else await commit(db);
     return view(
       { ...booking, ...update },
       {
@@ -404,6 +410,7 @@ const createWorkflow = ({ collections, clock, serializeBooking }) => {
       "estimatedCompletion",
       "expiresOn",
       "expectedRevision",
+      "loyaltyDiscount",
     ]);
     if (
       !["diagnosing", "awaiting_approval"].includes(
@@ -445,6 +452,9 @@ const createWorkflow = ({ collections, clock, serializeBooking }) => {
       );
     if (labor === null)
       fail(400, "Enter a valid labor amount.", "VALIDATION_ERROR");
+    if(req.body.loyaltyDiscount!==undefined&&typeof req.body.loyaltyDiscount!=="boolean")fail(400,"Choose whether you explicitly fund this quotation's loyalty discount.","VALIDATION_ERROR");
+    const loyaltyDiscount=req.body.loyaltyDiscount?discountForLabor(labor):0;
+    if(req.body.loyaltyDiscount&&(!ctx.booking.userUid||ctx.booking.userUid===req.user.uid||loyaltyDiscount<=0))fail(400,"A points discount requires another customer and a positive eligible labor discount.","LOYALTY_OFFER_INVALID");
     const cents = parts.reduce(
       (sum, part) => sum + Math.round(part.lineTotal * 100),
       Math.round(labor * 100),
@@ -502,8 +512,9 @@ const createWorkflow = ({ collections, clock, serializeBooking }) => {
         number: next.repair.quotations.length + 1,
         diagnosisId: next.repair.diagnoses.at(-1).id,
         parts,
-        labor,
-        total: cents / 100,
+        labor:Math.round((labor-loyaltyDiscount)*100)/100,
+        total: (cents-Math.round(loyaltyDiscount*100)) / 100,
+        ...(req.body.loyaltyDiscount?{loyalty:{policy:LOYALTY_POLICY,points:100,originalLabor:labor,discount:loyaltyDiscount,fundedBy:"provider",providerAcceptedAt:now}}:{}),
         currency: "USD",
         estimatedCompletion,
         expiresOn: req.body.expiresOn || null,
@@ -556,10 +567,11 @@ const createWorkflow = ({ collections, clock, serializeBooking }) => {
   };
   const decision = async (req, res) => {
     const ctx = await context(req, "customer");
-    checkKeys(req.body, ["decision", "note", "expectedRevision"]);
+    checkKeys(req.body, ["decision", "note", "expectedRevision", "redeemPoints"]);
     if (!["approve", "reject"].includes(req.body.decision))
       fail(400, "Choose approve or reject.", "VALIDATION_ERROR");
     const quote = pendingQuote(ctx.booking, req.params.quoteId);
+    if(req.body.decision==="approve"&&quote.loyalty&&req.body.redeemPoints!==true)fail(400,"Explicitly confirm using 100 points for this quotation, or ask for a quotation without the discount.","POINTS_CONFIRMATION_REQUIRED");
     if (req.body.decision === "approve" && quoteExpired(quote, clock()))
       fail(
         410,

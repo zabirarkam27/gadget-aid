@@ -1,4 +1,7 @@
 const { serviceCategory } = require("./categories");
+const { createDiscoveryTools } = require("./discovery-tools");
+const { createRepairGallery } = require("./repair-gallery");
+const { createLoyalty } = require("./loyalty");
 const { createRepairAssistant } = require("./repair-assistant");
 const { listPage, catalogueFilter, input: listInput, search: listSearch } = require("./listings");
 const { createPassports } = require("./passports");
@@ -100,6 +103,8 @@ const createApp = ({
       req.user.canProvide = req.access.canProvide;
       req.user.restricted = req.access.restricted;
       const allowed =
+        (req.method === "POST" && /^\/examples\/[a-f0-9]{24}\/withdraw$/.test(req.path)) ||
+        (req.method === "DELETE" && /^\/saved-technicians\/[a-f0-9]{24}$/.test(req.path)) ||
         req.method === "GET" ||
         req.method === "HEAD" ||
         req.path === "/notifications/read" ||
@@ -123,6 +128,26 @@ const createApp = ({
     }
   };
   app.get("/", (req, res) => res.send("Gadget aid server is running"));
+  const discovery = createDiscoveryTools({ collections, clock });
+  const loyalty=createLoyalty({collections,clock});
+  app.get("/loyalty",authenticated,loyalty.wallet);
+  app.get("/loyalty/redemptions",authenticated,loyalty.redemptions);
+  app.post("/loyalty/referral",authenticated,loyalty.claim);
+  const gallery = createRepairGallery({collections,clock,vault:receiptVault});
+  app.get("/repair-gallery",gallery.publicList);
+  app.get("/repair-gallery/:exampleId/images/:slot",gallery.publicImage);
+  app.get("/bookings/:id/example",authenticated,gallery.bookingRead);
+  app.post("/bookings/:id/example",authenticated,requireProvider,gallery.create);
+  app.post("/examples/:exampleId/images/:slot",authenticated,gallery.gate,express.raw({type:["image/jpeg","image/png"],limit:MAX_BYTES}),gallery.upload);
+  app.get("/examples/:exampleId/images/:slot",authenticated,gallery.privateImage);
+  app.post("/examples/:exampleId/submit",authenticated,requireProvider,gallery.submit);
+  app.post("/examples/:exampleId/consent",authenticated,gallery.consent);
+  app.post("/examples/:exampleId/withdraw",authenticated,gallery.withdraw);
+  app.get("/tools/compare", discovery.compare);
+  app.post("/tools/estimate", discovery.estimate);
+  app.get("/saved-technicians", authenticated, discovery.saved);
+  app.post("/saved-technicians", authenticated, discovery.save);
+  app.delete("/saved-technicians/:id", authenticated, discovery.remove);
   const repairAssistant = createRepairAssistant({ collections, clock, classify: repairClassifier });
   app.get("/repair-assistant/config", authenticated, repairAssistant.configuration);
   app.post("/repair-assistant", authenticated, repairAssistant.suggest);
@@ -603,6 +628,10 @@ const createApp = ({
   );
   app.post("/technician-application", authenticated, operations.apply);
   app.use("/admin", authenticated, operations.guard);
+  app.get("/admin/gallery",gallery.queue);
+  app.post("/admin/gallery/:exampleId/inspect",gallery.inspect);
+  app.get("/admin/gallery/:exampleId/images/:slot",gallery.adminImage);
+  app.post("/admin/gallery/:exampleId/moderate",gallery.moderate);
   app.get("/admin/overview", operations.overview);
   app.get("/admin/customers", operations.customers);
   for (const [route, kind] of [

@@ -6,6 +6,7 @@ import { API_URL } from "../utils/api";
 import { authFetch } from "../utils/authFetch";
 import { readJson } from "../utils/readJson";
 import Button from "../components/Button";
+import SaveTechnician from "../components/SaveTechnician";
 import Avatar from "../components/ui/Avatar";
 import Dialog from "../components/ui/Dialog";
 import FormField from "../components/ui/FormField";
@@ -156,6 +157,7 @@ const Profile = ({ id }) => {
                 {profile.bio || "This provider has not added a bio yet."}
               </p>
               <div className="flex flex-wrap gap-5 mt-6">
+                <SaveTechnician serviceId={profile.services?.[0]?._id}/>
                 <p className="font-semibold">
                   {profile.reviewCount
                     ? `${profile.averageRating} / 5 · ${profile.reviewCount} verified completed-booking review${profile.reviewCount === 1 ? "" : "s"}`

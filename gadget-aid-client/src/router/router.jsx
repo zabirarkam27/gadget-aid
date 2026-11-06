@@ -1,5 +1,14 @@
 import { lazy } from "react";
 const RepairAssistant = lazy(() => import("../pages/RepairAssistant"));
+const RepairCalculator = lazy(() => import("../pages/RepairCalculator"));
+const RepairEstimate = lazy(() => import("../pages/RepairEstimate"));
+const CompareServices = lazy(() => import("../pages/CompareServices"));
+const SavedTechnicians = lazy(() => import("../pages/SavedTechnicians"));
+const Recycling = lazy(() => import("../pages/Recycling"));
+const RepairGallery = lazy(() => import("../pages/RepairGallery"));
+const GalleryModeration = lazy(() => import("../pages/GalleryModeration"));
+const LoyaltyPolicy = lazy(() => import("../pages/LoyaltyPolicy"));
+const LoyaltyWallet = lazy(() => import("../pages/LoyaltyWallet"));
 import CapabilityGate from "../router/CapabilityGate";
 const AdminWorkspace = lazy(() => import("../pages/AdminWorkspace"));
 const AccountAccess = lazy(() => import("../pages/AccountAccess"));
@@ -32,6 +41,15 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <Error />,
     children: [
+      {path:"/repair-calculator",element:<RepairCalculator/>},
+      {path:"/repair-estimate",element:<RepairEstimate/>},
+      {path:"/compare-services",element:<CompareServices/>},
+      {path:"/recycling",element:<Recycling/>},
+      {path:"/repair-gallery",element:<RepairGallery/>},
+      {path:"/loyalty-policy",element:<LoyaltyPolicy/>},
+      {path:"/loyalty",element:<PrivateRoutes><LoyaltyWallet/></PrivateRoutes>},
+      {path:"/saved-technicians",element:<PrivateRoutes><SavedTechnicians/></PrivateRoutes>},
+      {path:"/admin/gallery",element:<PrivateRoutes><CapabilityGate admin><GalleryModeration/></CapabilityGate></PrivateRoutes>},
       { path: "/repair-assistant", element: <PrivateRoutes><RepairAssistant /></PrivateRoutes> },
       {
         path: "/devices",

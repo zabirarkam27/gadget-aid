@@ -188,6 +188,36 @@ The approved role model and production onboarding requirements are documented in
 All admin POSTs require a specific 10–1,000 character `reason`, `confirmed:true` and signed Firebase `auth_time` within 10 minutes. Mutations also require integer `expectedRevision` (zero for absent controls/new categories). Stale state returns 409; no automatic replay. Reasons on applications/publication are shared with the affected provider/applicant. Private inspections use POST to require an accountable reason before data is returned; they do not require a mutation revision. State and minimal audit entries share one transaction. Failure returns a safe error and no private details or partial state.
 
 Common additional codes: `ADMIN_REQUIRED`, `TECHNICIAN_REQUIRED`, `ADMIN_REAUTH_REQUIRED`, `CONFIRMATION_REQUIRED`, `ACCOUNT_RESTRICTED`, `ACCOUNT_NOT_VERIFIED`, `APPLICATION_REQUIRED`, `STALE_OPERATION`, `INVALID_CURSOR`, `CATEGORY_UNAVAILABLE`, `DISPUTE_EXISTS`. Admin requests perform Firebase revocation checking plus current server-grant validation. UI role flags never authorize API access.
+# Phase 12 discovery, gallery and points extension
+
+Public tools: `GET /tools/compare?ids=<comma-separated canonical service IDs>` accepts 1–3 distinct IDs and returns allowlisted visible listing fields plus unavailable IDs. `POST /tools/estimate` accepts `category` (optional category ID), `model` (optional, max 80) and `symptom` (2–80). Estimates sample up to 100 matching visible listings; `modelSpecific:false` and `currency:null` prevent implying a model price or confirmed catalogue currency.
+
+All private endpoints below require a verified Firebase token. Cursor lists use `limit` and scope-bound `cursor`; caller-supplied identity fields never scope access.
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET /saved-technicians` | Own paginated bookmarks; unavailable source listings yield a generic unavailable item. |
+| `POST /saved-technicians` | `serviceId` of a visible canonical listing; idempotent per owner/technician, max 100. |
+| `DELETE /saved-technicians/:id` | Remove only own bookmark; restricted owners can still remove. |
+| `GET /bookings/:id/example` | Actual participants only; private proposal and server-derived capabilities. |
+| `POST /bookings/:id/example` | Eligible canonical approved provider after trusted handover; `title` 6–100 and `description` 20–600. One example per booking. |
+| `POST /examples/:exampleId/images/:slot` | Raw JPEG/PNG, max 3 MiB; slot before/after, `X-Example-Revision`, `X-Example-Policy: public-repair-examples-v1`, `X-Image-Rights: confirmed`. Own editable draft only; encrypted normalized storage. |
+| `GET /examples/:exampleId/images/:slot` | Private authenticated participant image response; no-store. |
+| `POST /examples/:exampleId/submit` | Provider, both images, `confirmed:true`, `expectedRevision`; freezes content for customer review. |
+| `POST /examples/:exampleId/consent` | Actual customer only; `grant:boolean`, `confirmed:true`, `expectedRevision`; granting also requires current `policyVersion`. Decline erases media. |
+| `POST /examples/:exampleId/withdraw` | Either participant, `confirmed:true`, `expectedRevision`; atomic primary proposal/media deletion, including restricted participants. |
+| `GET /repair-gallery` | Public paginated published, consented examples with currently visible providers/listings. |
+| `GET /repair-gallery/:exampleId/images/:slot` | Public only while the same publication/visibility checks still pass; no private record IDs in URL. |
+| `GET /admin/gallery` | Admin/Super Admin paginated minimal queue. |
+| `POST /admin/gallery/:exampleId/inspect` | Recent sign-in, reason, confirmation and exact revision; audited private inspection. |
+| `GET /admin/gallery/:exampleId/images/:slot` | Current admin grant plus recent audited exact-revision inspection required. |
+| `POST /admin/gallery/:exampleId/moderate` | Recent sign-in, reason, confirmation, exact revision and `publish:boolean`; publication requires inspected customer-consented content. Audit failure rolls back state. |
+| `GET /loyalty` | Own wallet, paginated credit history, balances, private referral code and claim capability. Reconciles at most 25 new authoritative handovers per read. |
+| `GET /loyalty/redemptions` | Own paginated spend/refund summaries; no internal allocation/source identity details. |
+| `POST /loyalty/referral` | `code`, `confirmed:true`; verified unrestricted account, immutable inviter choice before any booking; rejects self/cycles. |
+
+Quotation creation additionally accepts `loyaltyDiscount:boolean` (default false). The server computes provider-funded labor discount and resulting total. Approval of such an offer requires `redeemPoints:true` in addition to the normal decision/revision. The server rechecks provider eligibility and available credits, then commits the 100-point debit and approval together. Supported cancellation restores only unexpired allocations atomically, without renewing expiry. See [Phase 12 policy](PHASE_12_DESIGN.md) for all eligibility, maturity, expiry and funding rules.
+
 # Phase 10 passport and warranty extension
 
 Every endpoint below requires a verified Firebase identity token with revocation checks. Device ownership is enforced by Firebase UID; Admin has no passport override. Lists omit serials, private responses use `Cache-Control: no-store`, and caller-supplied ownership/upload/verification fields are rejected.

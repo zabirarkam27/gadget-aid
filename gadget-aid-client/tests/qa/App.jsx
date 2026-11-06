@@ -1,5 +1,14 @@
 import CapabilityGate from "../../src/router/CapabilityGate";
 import RepairAssistant from "../../src/pages/RepairAssistant";
+import RepairCalculator from "../../src/pages/RepairCalculator";
+import RepairEstimate from "../../src/pages/RepairEstimate";
+import CompareServices from "../../src/pages/CompareServices";
+import SavedTechnicians from "../../src/pages/SavedTechnicians";
+import Recycling from "../../src/pages/Recycling";
+import RepairGallery from "../../src/pages/RepairGallery";
+import GalleryModeration from "../../src/pages/GalleryModeration";
+import LoyaltyPolicy from "../../src/pages/LoyaltyPolicy";
+import LoyaltyWallet from "../../src/pages/LoyaltyWallet";
 import DemoLogin from "./DemoLogin";
 import AccountSecurity from "../../src/pages/AccountSecurity";
 import Devices from "../../src/pages/Devices";
@@ -45,6 +54,15 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <ErrorPage />,
     children: [
+      {path:"repair-calculator",element:<RepairCalculator/>},
+      {path:"repair-estimate",element:<RepairEstimate/>},
+      {path:"compare-services",element:<CompareServices/>},
+      {path:"recycling",element:<Recycling/>},
+      {path:"repair-gallery",element:<RepairGallery/>},
+      {path:"loyalty-policy",element:<LoyaltyPolicy/>},
+      {path:"loyalty",element:protectedPage(<LoyaltyWallet/>)},
+      {path:"saved-technicians",element:protectedPage(<SavedTechnicians/>)},
+      {path:"admin/gallery",element:protectedPage(<CapabilityGate admin><GalleryModeration/></CapabilityGate>)},
       { path: "repair-assistant", element: protectedPage(<RepairAssistant />) },
       {
         path: "devices",

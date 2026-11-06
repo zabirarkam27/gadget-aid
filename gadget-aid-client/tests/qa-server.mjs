@@ -23,6 +23,8 @@ const fixture = createFixture({
   seedAdminRoles: true,
 });
 const { ObjectId } = require("../../gadget-aid-server/node_modules/mongodb");
+// Isolated synthetic wallet funding for UI redemption checks, never production.
+for(let index=0;index<5;index++){const issuedAt=new Date(+fixedTime-(10+index)*86400000);fixture.db.loyaltyCredits.rows.push({_id:new ObjectId(),ownerUid:users.customer.uid,type:"repair",points:20,remainingPoints:20,issuedAt,availableAt:new Date(+issuedAt+7*86400000),expiresAt:new Date(+issuedAt+365*86400000),day:issuedAt.toISOString().slice(0,10),month:"2026-10",policy:"discount-points-v1"});}
 const qaCategory = "777777777777777777777777";
 fixture.db.categories.rows.push({ _id: new ObjectId(qaCategory), name: "Laptop repairs", slug: "laptops", state: "active", revision: 1 });
 fixture.db.services.rows[0].categoryId = qaCategory;
