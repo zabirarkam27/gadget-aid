@@ -15,6 +15,7 @@ const { createCommunication } = require("./communication");
 const { createWorkflow, initialRepair } = require("./workflow");
 const express = require("express");
 const cors = require("cors");
+const { requestLimiter } = require("./request-limits");
 const {
   HttpError,
   fail,
@@ -45,10 +46,18 @@ const createApp = ({
   identityDirectory = null,
   receiptVault = null,
   repairClassifier = null,
+  vercel = false,
 }) => {
   const app = express();
   app.disable("x-powered-by");
   app.use(cors({ origin: origins }));
+  app.use((req, res, next) => {
+    res.set("X-Content-Type-Options", "nosniff");
+    res.set("Referrer-Policy", "no-referrer");
+    res.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
+    next();
+  });
+  app.use(requestLimiter({ clock, vercel }));
   app.use(express.json({ limit: "64kb" }));
   const collections = async () => {
     try {

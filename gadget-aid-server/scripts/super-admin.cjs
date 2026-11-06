@@ -1,5 +1,6 @@
 require("dotenv").config();
-const admin = require("firebase-admin");
+const { getApps, initializeApp, cert } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
 const { MongoClient } = require("mongodb");
 const { createDatabase } = require("../database");
 const { bootstrapSuperAdmin } = require("../bootstrap");
@@ -16,9 +17,9 @@ const run = async () => {
     throw new Error(
       "Confirm the exact target UID and configure explicit operator/write opt-in before bootstrap.",
     );
-  if (!admin.apps.length)
-    admin.initializeApp({
-      credential: admin.credential.cert({
+  if (!getApps().length)
+    initializeApp({
+      credential: cert({
         projectId: process.env.FB_PROJECT_ID,
         clientEmail: process.env.FB_CLIENT_EMAIL,
         privateKey: process.env.FB_PRIVATE_KEY?.replace(/\\n/g, "\n"),
@@ -31,7 +32,7 @@ const run = async () => {
     await client.connect();
     const result = await bootstrapSuperAdmin({
       db: createDatabase(client),
-      directory: admin.auth(),
+      directory: getAuth(),
       uid,
       operator: process.env.SUPER_ADMIN_OPERATOR,
       reason: reason.join(" "),

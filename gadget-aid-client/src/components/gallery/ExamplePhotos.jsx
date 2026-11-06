@@ -2,6 +2,24 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../provider/AuthContext";
 import { API_URL } from "../../utils/api";
 import { authFetch } from "../../utils/authFetch";
+function PublicPhoto({ path, label }) {
+  const [failed, setFailed] = useState(false);
+  return failed ? (
+    <p role="status">
+      {label} image is unavailable. Refresh the gallery; the example may have
+      been withdrawn.
+    </p>
+  ) : (
+    <img
+      src={`${API_URL}${path}`}
+      alt={`${label} repair example`}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      className="w-full max-h-80 object-contain rounded-xl"
+    />
+  );
+}
 function PrivatePhoto({ path, label }) {
   const [source, setSource] = useState(""),
     [error, setError] = useState(false);
@@ -34,6 +52,7 @@ function PrivatePhoto({ path, label }) {
     <img
       src={source}
       alt={`${label} repair example, private review`}
+      onError={() => setError(true)}
       className="w-full max-h-80 object-contain rounded-xl"
     />
   ) : (
@@ -64,11 +83,10 @@ export default function ExamplePhotos({
               <p className="ga-muted">Not uploaded.</p>
             )
           ) : (
-            <img
-              src={`${API_URL}/repair-gallery/${item._id}/images/${slot}`}
-              alt={`${slot} repair example`}
-              loading="lazy"
-              className="w-full max-h-80 object-contain rounded-xl"
+            <PublicPhoto
+              key={`${item._id}:${item.revision}:${slot}`}
+              path={`/repair-gallery/${item._id}/images/${slot}`}
+              label={slot === "before" ? "Before" : "After"}
             />
           )}
         </figure>

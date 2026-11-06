@@ -3,15 +3,16 @@ const { createRepairClassifier } = require("./repair-ai");
 require("dotenv").config();
 const dns = require("node:dns");
 const { MongoClient, ServerApiVersion } = require("mongodb");
-const admin = require("firebase-admin");
+const { getApps, initializeApp, cert } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
 const { createEmailSender } = require("./email");
 const { createApp } = require("./app");
 const { receiptVaultFromEnv } = require("./receipt-vault");
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
-if (!admin.apps.length)
-  admin.initializeApp({
-    credential: admin.credential.cert({
+if (!getApps().length)
+  initializeApp({
+    credential: cert({
       projectId: process.env.FB_PROJECT_ID,
       clientEmail: process.env.FB_CLIENT_EMAIL,
       privateKey: process.env.FB_PRIVATE_KEY?.replace(/\\n/g, "\n"),
@@ -68,11 +69,12 @@ if (
 )
   throw new Error("Production email links require an HTTPS APP_URL.");
 const app = createApp({
+  vercel: process.env.VERCEL === "1",
   receiptVault: receiptVaultFromEnv(),
   repairClassifier: createRepairClassifier(),
   identityDirectory: {
-    getUser: (uid) => admin.auth().getUser(uid),
-    listUsers: (limit, cursor) => admin.auth().listUsers(limit, cursor),
+    getUser: (uid) => getAuth().getUser(uid),
+    listUsers: (limit, cursor) => getAuth().listUsers(limit, cursor),
   },
   sendEmail: emailConfigured
     ? createEmailSender({
@@ -84,7 +86,7 @@ const app = createApp({
   appUrl: parsedAppUrl.origin,
   getCollections,
   verifyIdToken: (token, checkRevoked = false) =>
-    admin.auth().verifyIdToken(token, checkRevoked),
+    getAuth().verifyIdToken(token, checkRevoked),
   origins: (process.env.CORS_ORIGINS || "http://localhost:5173")
     .split(",")
     .map((value) => value.trim())
