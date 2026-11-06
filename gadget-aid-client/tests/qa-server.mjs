@@ -7,6 +7,10 @@ import tailwindcss from "@tailwindcss/vite";
 const require = createRequire(import.meta.url);
 const { createApp } = require("../../gadget-aid-server/app.js");
 const {
+  createReceiptVault,
+} = require("../../gadget-aid-server/receipt-vault.js");
+const { randomBytes } = require("node:crypto");
+const {
   createFixture,
   verifyIdToken,
   identityDirectory,
@@ -57,6 +61,10 @@ for (const key of ["provider", "other"]) {
 }
 const qaStartedAt = Date.now();
 const api = createApp({
+  receiptVault: createReceiptVault({
+    activeKeyId: "qa-v1",
+    keys: { "qa-v1": randomBytes(32).toString("base64") },
+  }),
   getCollections: async () => fixture.db,
   identityDirectory,
   verifyIdToken: async (token, ...args) => ({

@@ -1,5 +1,6 @@
 const { serviceCategory } = require("./categories");
 const { createPassports } = require("./passports");
+const { createReceipts, MAX_BYTES } = require("./receipts");
 const { accessFor, requireProvider, visibleServices } = require("./access");
 const { createOperations } = require("./operations");
 const { createDisputes } = require("./disputes");
@@ -37,6 +38,7 @@ const createApp = ({
   jobSecret = "",
   appUrl = "http://localhost:5173",
   identityDirectory = null,
+  receiptVault = null,
 }) => {
   const app = express();
   app.disable("x-powered-by");
@@ -100,6 +102,8 @@ const createApp = ({
         req.path === "/notifications/read" ||
         (req.method === "DELETE" &&
           /^\/devices\/[a-f0-9]{24}$/.test(req.path)) ||
+        (req.method === "DELETE" &&
+          /^\/devices\/[a-f0-9]{24}\/receipts\/[a-f0-9]{24}$/.test(req.path)) ||
         /^\/bookings\/[a-f0-9]{24}\/warranty\/claims$/.test(req.path) ||
         /^\/bookings\/[a-f0-9]{24}\/(cancel|disputes|messages\/read)$/.test(
           req.path,
@@ -505,6 +509,25 @@ const createApp = ({
     next();
   });
   const passports = createPassports({ collections, clock });
+  const receipts = createReceipts({ collections, clock, vault: receiptVault });
+  app.get("/devices/:id/receipts", authenticated, receipts.list);
+  app.post(
+    "/devices/:id/receipts",
+    authenticated,
+    receipts.gate,
+    express.raw({ type: ["image/jpeg", "image/png"], limit: MAX_BYTES }),
+    receipts.upload,
+  );
+  app.get(
+    "/devices/:id/receipts/:receiptId/content",
+    authenticated,
+    receipts.download,
+  );
+  app.delete(
+    "/devices/:id/receipts/:receiptId",
+    authenticated,
+    receipts.remove,
+  );
   app.get("/devices", authenticated, passports.list);
   app.post("/devices", authenticated, passports.create);
   app.get("/devices/:id", authenticated, passports.read);

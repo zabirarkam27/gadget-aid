@@ -8,7 +8,8 @@
     "email:deliver": "node scripts/deliver-email.cjs",
     "reviews:moderate": "node scripts/moderate-review.cjs",
     "test:mongo": "node --test tests/mongo.integration.cjs",
-    "admin:bootstrap": "node scripts/super-admin.cjs"
+    "admin:bootstrap": "node scripts/super-admin.cjs",
+    "receipts:configure": "node scripts/configure-receipts.cjs"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "firebase-admin": "^12.7.0",
-    "mongodb": "^6.21.0"
+    "mongodb": "^6.21.0",
+    "sharp": "^0.35.5"
   }
 }

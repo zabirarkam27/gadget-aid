@@ -17,12 +17,13 @@ A gadget repair service marketplace built with React/Vite, Firebase Authenticati
 - One review per verified completed booking, permanent provider responses and private reports with audited operator moderation.
 - Private Gadget Passports with serial protection, booking-linked repair history, private QR links and confirmed JSON export/device deletion.
 - Provider-issued repair warranty terms, recorded-handover eligibility and customer claims with reasoned provider decisions.
+- Encrypted private receipt photos with owner-only upload/download, image validation, quotas and atomic deletion.
 
 Signed-in customers can book and review eligible repairs. Offering services requires approved Technician access. Admin and Super Admin permissions are server controlled; public visitors can browse. Providers can offer date requests or reserved one-hour appointments in Bangladesh time. Profile claims are self-reported; completed-booking reviews are checked against server-recorded handover. Payments and instant push notifications are not implemented.
 
 Phase 9 adds platform operations at `/admin`: overview, masked accounts, technician applications/publication, listings, bookings, disputes, reviews/reports, categories, roles and audit/email logs. Sensitive actions require recent sign-in, a reason, explicit confirmation and atomic audit persistence. See [approved authorization](docs/PHASE_9_AUTHORIZATION.md) and [Phase 9 setup and verification](docs/PHASE_9_VALIDATION.md). No real account is automatically promoted. Review existing-provider onboarding before deploying the matched client/server.
 
-Phase 10 adds **My devices** at `/devices`. Add a private passport, then link it from your booking's **Gadget Passport & warranty** panel. Only the passport owner can read its record, including through its QR link. Providers can issue repair-specific warranty terms after recorded handover; customers can submit claims within the stated dates. Uploads are unavailable until secure file storage and retention are configured. See [Phase 10 privacy, warranty rules and validation](docs/PHASE_10_VALIDATION.md).
+Phase 10 adds **My devices** at `/devices`. Add a private passport, then link it from your booking's **Gadget Passport & warranty** panel. Only the passport owner can read its record, including through its QR link. Providers can issue repair-specific warranty terms after recorded handover; customers can submit claims within the stated dates. **Private receipts** now accepts JPEG/PNG photos up to 3 MiB with consent, image normalization and AES-256-GCM storage encryption. PDF uploads remain unavailable. See [receipt storage setup/retention](docs/RECEIPT_STORAGE.md) and [Phase 10 privacy, warranty rules and validation](docs/PHASE_10_VALIDATION.md).
 
 ## Run locally
 

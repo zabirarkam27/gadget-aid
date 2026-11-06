@@ -7,6 +7,7 @@ import DashboardLayout from "../components/dashboard/DashboardLayout";
 import FormField from "../components/ui/FormField";
 import Dialog from "../components/ui/Dialog";
 import Button from "../components/Button";
+import DeviceReceipts from "../components/dashboard/DeviceReceipts";
 const blank = {
   label: "",
   type: "",
@@ -371,6 +372,7 @@ function DeviceWorkspace({ id }) {
                         repairs are not assumed.
                       </p>
                     </section>
+                    <DeviceReceipts deviceId={id} />
                     <section className="ga-surface p-6 space-y-4">
                       <h2 className="text-xl font-semibold">Repair history</h2>
                       {history?.items.length ? (
@@ -457,9 +459,9 @@ function DeviceWorkspace({ id }) {
           )
         )}
         <p className="text-sm ga-muted">
-          Invoice/receipt uploads are unavailable until secure storage, access
-          control and retention are configured. Device deletion erases device
-          details and links; the original repair and warranty records remain
+          Private JPEG/PNG receipt uploads are available on each device. PDF
+          files are not accepted. Device deletion erases its details, attached
+          receipts and links; the original repair and warranty records remain
           available to their participants.
         </p>
       </div>
@@ -478,8 +480,8 @@ function DeviceWorkspace({ id }) {
           <p className="break-words">{data?.label}</p>
           <p className="ga-muted">
             {dialog === "delete"
-              ? "This permanently erases this device's saved details, including serial number, and removes its repair links. Original bookings and provider warranty records are preserved. Export first if you need a copy."
-              : "The JSON file includes your private serial number, device details and linked repair/warranty history. Save it only somewhere you trust."}
+              ? "This permanently erases this device's saved details, serial number, attached receipt photos and repair links. Original bookings and provider warranty records are preserved. Export and download your receipts first if you need copies."
+              : "The JSON file includes your private serial number, device details, receipt manifest and linked repair/warranty history. Receipt photos must be downloaded separately from Private receipts. Save these files only somewhere you trust."}
           </p>
           <label className="flex items-start gap-3">
             <input

@@ -165,6 +165,11 @@ class MemoryCollection {
     this.rows.splice(index, 1);
     return { deletedCount: 1 };
   }
+  async deleteMany(query) {
+    const before = this.rows.length;
+    this.rows = this.rows.filter((row) => !matches(row, query));
+    return { deletedCount: before - this.rows.length };
+  }
 }
 const serviceFields = {
   name: "Laptop diagnostic repair",
@@ -216,6 +221,8 @@ const createFixture = ({
   };
   const db = {
     devices: new MemoryCollection(),
+    receipts: new MemoryCollection(),
+    receiptFiles: new MemoryCollection(),
     warranties: new MemoryCollection(),
     roleGrants: new MemoryCollection(),
     accountControls: new MemoryCollection(),

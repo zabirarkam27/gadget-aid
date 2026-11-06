@@ -7,6 +7,25 @@ export const readJson = async (response) => {
       body = {};
     }
     const messages = {
+      RECEIPT_UNAVAILABLE:
+        "Private receipt storage is unavailable or its encryption key needs attention. Try again later.",
+      RECEIPT_POLICY_REQUIRED:
+        "Review and accept the private receipt storage and deletion policy first.",
+      RECEIPT_TOO_LARGE:
+        "Choose a JPEG/PNG receipt photo no larger than 3 MiB.",
+      RECEIPT_TYPE:
+        "Only JPEG and PNG receipt photos are supported. PDF, SVG and other files are not accepted.",
+      RECEIPT_INVALID_IMAGE:
+        "This receipt photo is damaged, unsupported or exceeds the safe image dimensions.",
+      RECEIPT_QUOTA:
+        "Receipt storage is full: up to 10 per device, 50 per account and 30 MiB per account. Download and delete an old receipt first.",
+      RECEIPT_BUSY: "Receipt processing is busy. Wait a moment and try again.",
+      RECEIPT_RATE_LIMIT:
+        "Too many receipt uploads. Wait a minute before trying again.",
+      UPLOAD_REFERENCE_CONFLICT:
+        "This upload reference belongs to a different receipt. Select the file again for a new upload.",
+      REQUEST_TOO_LARGE:
+        "The request is too large. Receipt photos must be no larger than 3 MiB.",
       STALE_PASSPORT:
         "The device, linked repair or warranty changed. Refresh before saving again.",
       DEVICE_LIMIT:

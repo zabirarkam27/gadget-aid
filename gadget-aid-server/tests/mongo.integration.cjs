@@ -3,7 +3,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { once } = require("node:events");
-const { randomUUID } = require("node:crypto");
+const { randomUUID, randomBytes } = require("node:crypto");
+const sharp = require("sharp");
+const { createReceiptVault } = require("../receipt-vault");
 const { MongoClient } = require("mongodb");
 const { createDatabase } = require("../database");
 const { createApp } = require("../app");
@@ -37,12 +39,34 @@ test(
       await db.roleGrants.insertOne(grant);
     let failMode = "";
     const app = createApp({
+      receiptVault: createReceiptVault({
+        activeKeyId: "qa-v1",
+        keys: { "qa-v1": randomBytes(32).toString("base64") },
+      }),
       getCollections: async () => ({
         ...db,
         transaction: (work) =>
           db.transaction((tx) =>
             work({
               ...tx,
+              receipts:
+                failMode === "receipt-meta"
+                  ? {
+                      ...tx.receipts,
+                      insertOne: async () => {
+                        throw Error("Synthetic receipt metadata outage");
+                      },
+                    }
+                  : tx.receipts,
+              receiptFiles:
+                failMode === "receipt-cascade"
+                  ? {
+                      ...tx.receiptFiles,
+                      deleteMany: async () => {
+                        throw Error("Synthetic receipt erasure outage");
+                      },
+                    }
+                  : tx.receiptFiles,
               devices:
                 failMode === "passport-delete"
                   ? {
@@ -112,19 +136,38 @@ test(
       server.closeAllConnections();
       await new Promise((resolve) => server.close(resolve));
     });
-    const request = async (method, path, body, token = "provider") => {
+    const request = async (
+      method,
+      path,
+      body,
+      token = "provider",
+      headers = {},
+    ) => {
       const r = await fetch(
         `http://127.0.0.1:${server.address().port}${path}`,
         {
           method,
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            "Content-Type": Buffer.isBuffer(body)
+              ? "image/png"
+              : "application/json",
+            ...headers,
           },
-          body: body === undefined ? undefined : JSON.stringify(body),
+          body:
+            body === undefined
+              ? undefined
+              : Buffer.isBuffer(body)
+                ? body
+                : JSON.stringify(body),
         },
       );
-      return { status: r.status, data: await r.json() };
+      return {
+        status: r.status,
+        data: r.headers.get("content-type")?.startsWith("image/")
+          ? Buffer.from(await r.arrayBuffer())
+          : await r.json(),
+      };
     };
     const a = defaultAvailability();
     const body = {
@@ -537,6 +580,113 @@ test(
     assert.equal(
       await db.warranties.countDocuments({ bookingId: ids.booking }),
       1,
+    );
+    const receiptDevice = await request(
+      "POST",
+      "/devices",
+      {
+        label: "Receipt QA device",
+        type: "Laptop",
+        brand: "Demo",
+        model: "Receipt",
+        serialNumber: "",
+        purchaseDate: null,
+      },
+      "customer",
+    );
+    assert.equal(receiptDevice.status, 201);
+    const receiptPhoto = await sharp({
+        create: { width: 96, height: 64, channels: 3, background: "#336699" },
+      })
+        .png()
+        .toBuffer(),
+      receiptPath = `/devices/${receiptDevice.data._id}/receipts`,
+      receiptHeaders = {
+        "X-Upload-Id": randomUUID(),
+        "X-Receipt-Policy": "private-receipts-v1",
+        "X-Receipt-Label": "Local%20receipt",
+      };
+    failMode = "receipt-meta";
+    assert.equal(
+      (
+        await request(
+          "POST",
+          receiptPath,
+          receiptPhoto,
+          "customer",
+          receiptHeaders,
+        )
+      ).status,
+      500,
+    );
+    assert.equal(await db.receiptFiles.countDocuments({}), 0);
+    assert.equal(await db.receipts.countDocuments({}), 0);
+    failMode = "";
+    const storedReceipt = await request(
+      "POST",
+      receiptPath,
+      receiptPhoto,
+      "customer",
+      receiptHeaders,
+    );
+    assert.equal(storedReceipt.status, 201);
+    assert.equal(
+      (
+        await request(
+          "POST",
+          receiptPath,
+          receiptPhoto,
+          "customer",
+          receiptHeaders,
+        )
+      ).status,
+      200,
+    );
+    const encryptedReceipt = await db.receiptFiles.findOne({});
+    assert.ok(encryptedReceipt.ciphertext);
+    assert.equal(encryptedReceipt.encryptionVersion, 1);
+    assert.equal(
+      (
+        await request(
+          "GET",
+          `${receiptPath}/${storedReceipt.data._id}/content`,
+          undefined,
+          "customer",
+        )
+      ).data[0],
+      255,
+    );
+    failMode = "receipt-cascade";
+    assert.equal(
+      (
+        await request(
+          "DELETE",
+          `/devices/${receiptDevice.data._id}`,
+          { confirmed: true, expectedRevision: 0 },
+          "customer",
+        )
+      ).status,
+      500,
+    );
+    assert.equal(await db.receipts.countDocuments({}), 1);
+    assert.equal(await db.receiptFiles.countDocuments({}), 1);
+    assert.ok(await db.devices.findOne({ ownerUid: users.customer.uid }));
+    failMode = "";
+    assert.equal(
+      (
+        await request(
+          "DELETE",
+          `/devices/${receiptDevice.data._id}`,
+          { confirmed: true, expectedRevision: 0 },
+          "customer",
+        )
+      ).status,
+      200,
+    );
+    assert.equal(await db.receipts.countDocuments({}), 0);
+    assert.equal(await db.receiptFiles.countDocuments({}), 0);
+    t.diagnostic(
+      "Private receipts: metadata failures rolled back ciphertext; idempotent retries retained one file; encrypted content round-tripped through authorized download; failed device cascade preserved both metadata and ciphertext; successful deletion erased both atomically.",
     );
     t.diagnostic(
       "Phase 10: failed warranty insertion and device deletion rolled back; concurrent claims committed exactly once; device erasure detached repair links while preserving provider warranty history.",

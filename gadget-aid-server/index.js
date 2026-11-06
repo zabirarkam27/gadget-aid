@@ -5,6 +5,7 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const admin = require("firebase-admin");
 const { createEmailSender } = require("./email");
 const { createApp } = require("./app");
+const { receiptVaultFromEnv } = require("./receipt-vault");
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 if (!admin.apps.length)
@@ -66,6 +67,7 @@ if (
 )
   throw new Error("Production email links require an HTTPS APP_URL.");
 const app = createApp({
+  receiptVault: receiptVaultFromEnv(),
   identityDirectory: {
     getUser: (uid) => admin.auth().getUser(uid),
     listUsers: (limit, cursor) => admin.auth().listUsers(limit, cursor),

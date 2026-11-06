@@ -11,6 +11,7 @@ const {
   serializeBooking,
 } = require("./domain");
 const { completionVerified } = require("./reviews");
+const { eraseDeviceReceipts, receiptView } = require("./receipts");
 const { pageDocs, queryFilter } = require("./pagination");
 const text = (value, min, max, label) => {
   if (
@@ -257,6 +258,7 @@ const createPassports = ({ collections, clock }) => {
     await db.transaction(async (tx) => {
       const row = await owned(tx, req.params.id, req.user);
       same(row, expected);
+      await eraseDeviceReceipts(tx, String(row._id), req.user.uid);
       await tx.bookings.updateMany(
         { deviceId: String(row._id) },
         { $set: { deviceId: null } },
@@ -318,6 +320,13 @@ const createPassports = ({ collections, clock }) => {
         format: "gadgetaid-passport-v1",
         exportedAt: clock(),
         device: deviceView(row, true),
+        receipts: (
+          await tx.receipts
+            .find({ ownerUid: req.user.uid, deviceId: String(row._id) })
+            .sort({ _id: -1 })
+            .limit(10)
+            .toArray()
+        ).map(receiptView),
         repairs: await historyRows(tx, rows),
       };
     });

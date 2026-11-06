@@ -16,6 +16,8 @@ const collectionNames = {
   operationMeta: "operationMeta",
   devices: "devices",
   warranties: "repairWarranties",
+  receipts: "deviceReceipts",
+  receiptFiles: "privateReceiptFiles",
 };
 const createDatabase = (client, databaseName = "gadgetAidDB") => {
   const bind = (session) =>
@@ -38,6 +40,8 @@ const createDatabase = (client, databaseName = "gadgetAidDB") => {
                 updateOne: (query, update) =>
                   collection.updateOne(query, update, { session }),
                 deleteOne: (query) => collection.deleteOne(query, { session }),
+                deleteMany: (query) =>
+                  collection.deleteMany(query, { session }),
               }
             : collection,
         ];

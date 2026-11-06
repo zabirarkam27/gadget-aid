@@ -1,5 +1,7 @@
 # Phase 10 — Gadget Passport, device history and warranty
 
+Follow-up: owner-only JPEG/PNG receipt uploads are now implemented and local encrypted storage is configured. The original upload limitation below describes the Phase 10 baseline; [receipt storage policy, setup and validation](RECEIPT_STORAGE.md) supersedes it for receipt photos. PDF and other file formats remain unsupported.
+
 ## Delivered behavior
 
 Customers can keep private gadget passports at `/devices`: device name/type, optional brand/model, optional private serial number and optional purchase date. Only the owning Firebase UID can read/edit/export/delete a device, including when an Admin knows its ID. Lists omit serial numbers. Serial reveal is explicit in the edit form. New records reject ownership, warranty, upload URL and other unsupported fields.
