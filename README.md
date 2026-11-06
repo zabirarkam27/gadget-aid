@@ -65,7 +65,15 @@ Open [the demo login page](http://127.0.0.1:5176/login) in your local browser an
 | Super Admin | `superadmin@example.test` | `GadgetAidDemo123!` | **Super Admin** |
 | Admin | `admin@example.test` | `GadgetAidDemo123!` | **Admin** |
 
-These are public, synthetic QA credentials, not Firebase accounts or real security credentials. They work only on the isolated QA server at port 5176, not the normal app at port 5173 or the deployed website. The demo session survives page refresh in the same browser tab; no password is stored. No real Firebase Admin/Super Admin account has been created. For real account setup, see [Super Admin bootstrap and technician onboarding](docs/PHASE_9_VALIDATION.md#bootstrap-and-onboarding). Restarting the QA server resets demo data.
+These are public, synthetic QA credentials, not Firebase accounts or real security credentials. They work only on the isolated QA server at port 5176, not the normal app at port 5173 or the deployed website. The demo session survives page refresh in the same browser tab; no password is stored. Real operator accounts are configured separately and their passwords are never published here. For real account setup, see [Super Admin bootstrap and technician onboarding](docs/PHASE_9_VALIDATION.md#bootstrap-and-onboarding). Restarting the QA server resets demo data.
+
+## Real login and account security
+
+Use `/login` on the normal app (`http://localhost:5173/login` locally) for real Firebase accounts. Sign in with email/password or the Google provider already linked to that same account. Roles follow the verified Firebase UID and server grant, not a selected email or login button.
+
+Open **My account → Account security** (`/account-security`) to change a password or explicitly connect Google without creating another GadgetAid identity. Password changes require current-password verification; Google-only accounts reauthenticate with Google before adding password access. New passwords must match confirmation and meet the Firebase project policy: 12–128 characters, including uppercase, lowercase, a number and a symbol. Existing users are not forced to upgrade merely to sign in.
+
+After changing a password, sign in again. All private backend routes check Firebase session revocation, including customer/provider requests. The Firebase **Forgot password** email flow remains available for recovery. A password-policy UI does not replace the Firebase project policy; see [account security verification and deployment notes](docs/ACCOUNT_SECURITY.md). Demo QA security actions are synthetic and never change real credentials.
 
 ## Data and API policy
 

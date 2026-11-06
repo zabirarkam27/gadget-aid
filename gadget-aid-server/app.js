@@ -61,7 +61,7 @@ const createApp = ({
         .status(401)
         .json({ message: "Log in to continue.", code: "UNAUTHENTICATED" });
     try {
-      const decoded = await verifyIdToken(match[1]);
+      const decoded = await verifyIdToken(match[1], true);
       const uid = decoded?.uid || decoded?.sub;
       if (
         typeof uid !== "string" ||

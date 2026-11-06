@@ -1,5 +1,10 @@
 import CapabilityGate from "../../src/router/CapabilityGate";
 import DemoLogin from "./DemoLogin";
+import AccountSecurity from "../../src/pages/AccountSecurity";
+import {
+  createSecurityActions,
+  passwordProblem,
+} from "../../src/utils/accountSecurity";
 import AdminWorkspace from "../../src/pages/AdminWorkspace";
 import AccountAccess from "../../src/pages/AccountAccess";
 import MyDisputes from "../../src/pages/MyDisputes";
@@ -38,6 +43,7 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <ErrorPage />,
     children: [
+      { path: "account-security", element: protectedPage(<AccountSecurity />) },
       {
         path: "admin",
         element: protectedPage(
@@ -88,10 +94,33 @@ const QA = () => {
     setFixtureIdentity(value);
     setUser(getFixtureUser());
   };
+  const security = createSecurityActions({
+    getUser: getFixtureUser,
+    validatePassword: async (value) => !passwordProblem(value),
+    reauthenticatePassword: async (u, password) => {
+      if (password !== "GadgetAidDemo123!")
+        throw Object.assign(Error("Invalid demo password"), {
+          code: "auth/invalid-credential",
+        });
+    },
+    reauthenticateGoogle: async () => {
+      throw Error("Google popup is unavailable in isolated QA");
+    },
+    updatePassword: async () => {},
+    linkPassword: async () => {},
+    linkGoogle: async () => {
+      throw Object.assign(Error("Real Google is unavailable in isolated QA"), {
+        code: "auth/popup-closed-by-user",
+      });
+    },
+    reload: async () => {},
+    signOut: async () => choose(""),
+  });
   return (
     <AuthContext.Provider
       value={{
         user,
+        security,
         loading: false,
         setUser,
         logOut: async () => choose(""),

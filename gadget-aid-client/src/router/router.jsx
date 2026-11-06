@@ -1,6 +1,7 @@
 import CapabilityGate from "../router/CapabilityGate";
 import AdminWorkspace from "../pages/AdminWorkspace";
 import AccountAccess from "../pages/AccountAccess";
+import AccountSecurity from "../pages/AccountSecurity";
 import MyDisputes from "../pages/MyDisputes";
 import TechnicianProfile from "../pages/TechnicianProfile";
 import TechnicianSettings from "../pages/TechnicianSettings";
@@ -28,6 +29,14 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <Error />,
     children: [
+      {
+        path: "/account-security",
+        element: (
+          <PrivateRoutes>
+            <AccountSecurity />
+          </PrivateRoutes>
+        ),
+      },
       {
         path: "/admin",
         element: (

@@ -57,6 +57,35 @@ const action = (extra = {}) => ({
   expectedRevision: 0,
   ...extra,
 });
+test("revoked member sessions are denied on every private route before loading account data", async (t) => {
+  let revoked = false;
+  const seen = [];
+  const w = await setup(t, {
+    verifyIdToken: async (token, checkRevoked) => {
+      seen.push(checkRevoked);
+      if (revoked && checkRevoked)
+        throw Error("Synthetic revoked password session");
+      return verifyIdToken(token);
+    },
+  });
+  assert.equal(
+    (await w.request("GET", "/my-capabilities", undefined, "customer")).status,
+    200,
+  );
+  revoked = true;
+  for (const path of [
+    "/my-capabilities",
+    "/bookings",
+    `/bookings/${ids.booking}`,
+    "/my-disputes",
+  ])
+    assert.equal(
+      (await w.request("GET", path, undefined, "customer")).status,
+      401,
+    );
+  assert.ok(seen.length >= 5);
+  assert.ok(seen.every((value) => value === true));
+});
 const categoryId = (slug) =>
   createHash("sha256").update(`category-v1:${slug}`).digest("hex").slice(0, 24);
 const saveProfile = async (w) => {

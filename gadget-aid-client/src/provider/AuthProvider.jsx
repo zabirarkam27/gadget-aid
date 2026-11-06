@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
 import app from "../firebase/firebase.config";
+import { createSecurityActions } from "../utils/accountSecurity";
 
 import {
   getAuth,
@@ -9,15 +10,57 @@ import {
   onAuthStateChanged,
   signOut,
   signInWithEmailAndPassword,
+  EmailAuthProvider,
+  GoogleAuthProvider,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
+  updatePassword,
+  linkWithCredential,
+  linkWithPopup,
+  reload,
+  validatePassword,
 } from "firebase/auth";
 
 const auth = getAuth(app);
+const googleProvider = (user) => {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({
+    login_hint: user.email,
+    prompt: "select_account",
+  });
+  return provider;
+};
+const security = createSecurityActions({
+  getUser: () => auth.currentUser,
+  reauthenticatePassword: (user, password) =>
+    reauthenticateWithCredential(
+      user,
+      EmailAuthProvider.credential(user.email, password),
+    ),
+  reauthenticateGoogle: (user) =>
+    reauthenticateWithPopup(user, googleProvider(user)),
+  updatePassword,
+  linkPassword: (user, password) =>
+    linkWithCredential(
+      user,
+      EmailAuthProvider.credential(user.email, password),
+    ),
+  linkGoogle: (user) => linkWithPopup(user, googleProvider(user)),
+  reload,
+  validatePassword: async (password) =>
+    (await validatePassword(auth, password)).isValid,
+  signOut: () => signOut(auth),
+});
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const createNewUser = (email, password) => {
+  const createNewUser = async (email, password) => {
+    if (!(await validatePassword(auth, password)).isValid)
+      throw Object.assign(new Error("Password policy not met."), {
+        code: "auth/weak-password",
+      });
     return createUserWithEmailAndPassword(auth, email, password);
   };
 
@@ -55,6 +98,7 @@ const AuthProvider = ({ children }) => {
     sendVerificationEmail: () => sendEmailVerification(auth.currentUser),
     login,
     logOut,
+    security,
   };
   if (loading) {
     return (

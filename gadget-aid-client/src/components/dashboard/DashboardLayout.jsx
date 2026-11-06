@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 const links = [
   ["/account-access", "Account access"],
+  ["/account-security", "Account security"],
   ["/my-disputes", "My support requests"],
   ["/my-technician", "Technician profile"],
   ["/notifications", "Notifications"],

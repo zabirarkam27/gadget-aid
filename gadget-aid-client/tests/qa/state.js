@@ -1,24 +1,32 @@
 const identities = {
   customer: {
     uid: "qa-customer",
+    emailVerified: true,
+    providerData: [{ providerId: "password" }],
     email: "customer@example.test",
     displayName: "Demo Customer",
     photoURL: null,
   },
   provider: {
     uid: "qa-provider",
+    emailVerified: true,
+    providerData: [{ providerId: "password" }],
     email: "provider@example.test",
     displayName: "Demo Repairs",
     photoURL: null,
   },
   admin: {
     uid: "qa-admin",
+    emailVerified: true,
+    providerData: [{ providerId: "password" }],
     email: "admin@example.test",
     displayName: "Demo Admin",
     photoURL: null,
   },
   superadmin: {
     uid: "qa-superadmin",
+    emailVerified: true,
+    providerData: [{ providerId: "password" }],
     email: "superadmin@example.test",
     displayName: "Demo Super Admin",
     photoURL: null,

@@ -25,3 +25,5 @@ gadget-aid-server/.env
 # OS
 .DS_Store
 Thumbs.db
+# Local credentials are never committed.
+/Credentials.txt
