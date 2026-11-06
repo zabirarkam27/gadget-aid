@@ -1,0 +1,245 @@
+{
+  "environment": "live public site; signed out; no private writes",
+  "checks": [
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "live-listed-price-result",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "live-listed-price-result",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "live-listed-price-result",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "live-listed-price-result",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "live-listed-price-result",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "live-service-comparison",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "live-service-comparison",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "live-service-comparison",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "live-service-comparison",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "live-service-comparison",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "live-gallery-empty",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "live-gallery-empty",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "live-gallery-empty",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "live-gallery-empty",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "live-gallery-empty",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "live-recycling",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "live-recycling",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "live-recycling",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "live-recycling",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "live-recycling",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "live-points-policy",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "live-points-policy",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "live-points-policy",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "live-points-policy",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "live-points-policy",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "live-login-redirect",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "live-login-redirect",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "live-login-redirect",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "live-login-redirect",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "live-login-redirect",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "live-contact",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "live-contact",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "live-contact",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "live-contact",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "live-contact",
+      "width": 1440
+    },
+    {
+      "client": 345,
+      "document": 345,
+      "screen": "live-calculator-results",
+      "width": 360
+    },
+    {
+      "client": 375,
+      "document": 375,
+      "screen": "live-calculator-results",
+      "width": 390
+    },
+    {
+      "client": 753,
+      "document": 753,
+      "screen": "live-calculator-results",
+      "width": 768
+    },
+    {
+      "client": 1351,
+      "document": 1351,
+      "screen": "live-calculator-results",
+      "width": 1366
+    },
+    {
+      "client": 1425,
+      "document": 1425,
+      "screen": "live-calculator-results",
+      "width": 1440
+    }
+  ]
+}

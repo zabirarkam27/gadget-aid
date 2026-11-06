@@ -31,7 +31,7 @@ Phase 10 adds **My devices** at `/devices`. Add a private passport, then link it
 
 Private receipt storage is live at [GadgetAid My devices](https://gadget-aid.web.app/devices). Both frontend and backend have been deployed with the existing encryption key preserved. [Release verification and operation notes](docs/LIVE_RECEIPT_RELEASE.md).
 
-Phase 12 is implemented and verified locally. Its six features have not been deployed to the production website. Points offer 20 per eligible completed repair, 40 per eligible referral, and 100 points for 5% off labor up to USD 5 when the provider explicitly funds that quotation. Points mature after seven days and expire 365 days after the qualifying handover. See the policy for eligibility, caps and cancellation accounting.
+Phases 1–12 are published to the [live website](https://gadget-aid.web.app). Booking email delivery and optional external AI remain unconfigured; in-app communication and guided repair suggestions work without them. See the [full-plan audit](docs/FULL_PLAN_AUDIT.md) and [live release evidence](docs/LIVE_FULL_RELEASE.md). Points offer 20 per eligible completed repair, 40 per eligible referral, and 100 points for 5% off labor up to USD 5 when the provider explicitly funds that quotation. Points mature after seven days and expire 365 days after the qualifying handover. See the policy for eligibility, caps and cancellation accounting.
 
 ## Run locally
 

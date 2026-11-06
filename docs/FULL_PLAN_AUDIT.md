@@ -27,20 +27,22 @@ Optional/future items in the plan are not silently represented as active service
 
 1. Replaced the unverified `support@gadgetaid.com` contact claim with the actual booking conversation/dispute route. An optional validated public `VITE_SUPPORT_EMAIL` can be configured after mailbox ownership/delivery is verified; no personal email was published.
 2. Added clear public-gallery image-unavailable feedback (including withdrawal races) and private decode-error feedback.
-3. Patched audited dependency chains, removed unused localforage/match-sorter/sort-by, resolved the React 19/Helmet peer conflict, migrated Firebase Admin to modular Auth entry points and declared Node 22 for deployment. Explicit patched gRPC/glob/minimatch overrides are recorded in lockfiles. These are security-driven updates, not a framework rewrite.
+3. Patched audited dependency chains, removed unused localforage/match-sorter/sort-by, resolved the React 19/Helmet peer conflict, migrated Firebase Admin to modular Auth entry points and declared Node 22 for deployment. Explicit patched gRPC/glob/minimatch overrides are recorded in lockfiles. A scoped jwks-rsa/jose 5.10 compatibility override fixes the confirmed serverless require(ESM) failure; a child-process initialization test and real RSA/JWKS signature test cover it. Both dependency audits remain clean. These are security-driven updates, not a framework rewrite.
 4. Added API no-sniff/referrer/CSP headers and a bounded per-instance request budget before body parsing. Estimates count six units; ordinary requests one, budget 180/minute/IP and maximum 5,000 active buckets. Retry-After and safe 429 feedback are returned. Local forwarded headers are ignored; only the explicit Vercel runtime uses its edge-overwritten forwarded IP. No raw IP is logged/persisted. This is supplemental protection, not a distributed firewall; existing shared AI/upload quotas remain.
 5. Added Firebase security headers, revalidation for page shells and immutable caching for hashed assets. Authentication popup/iframe behavior is preserved; no restrictive frontend CSP was guessed.
 6. Added GitHub Actions checks on main/PR: Node 22 clean installs, production dependency audit, tests, client lint/build and disposable real-MongoDB transaction tests. CI needs no production credentials and does not automatically deploy or send email.
+7. Corrected a legacy non-UTF-8 loading ellipsis and made dynamic page titles a single text value for React 19. A UTF-8 scan of client source found no remaining malformed files.
+8. Recovered stale lazy-route assets after a live deployment: one automatic current-route reload per minute, no loop, with manual error-page recovery retained for offline/storage-blocked browsers. The live test crossed from the old entry bundle to the new entry after deployment and successfully rendered the requested estimate page without manual reload. The old bundle briefly logged an undefined module error during unload; final pages rendered successfully.
 
-Technical references: [Firebase Admin v14 migration](https://firebase.google.com/support/release-notes/admin/node), [Firebase Hosting headers](https://firebase.google.com/docs/hosting/full-config#headers), [Vercel request headers](https://vercel.com/docs/headers/request-headers).
+Technical references: [Firebase Admin v14 migration](https://firebase.google.com/support/release-notes/admin/node), [Firebase Hosting headers](https://firebase.google.com/docs/hosting/full-config#headers), [Vercel request headers](https://vercel.com/docs/headers/request-headers), [Vite stale asset recovery](https://vite.dev/guide/build.html#load-error-handling).
 
 ## Validation
 
-- Backend: 131 tests passed; real local MongoDB transaction suites: 2 passed. Includes authorization, tampered bookings, duplicates, slot contention, moderation/audit rollback, encrypted receipts/gallery, wallet spending/refund and limiter spoofing/expiry/capacity.
-- Frontend: 21 tests passed; lint and production build passed. Security-updated build has lazy routes, a 372.39 kB entry and 174.85 kB Firebase chunk; no 500 kB chunk warning.
+- Backend: 133 tests passed; real local MongoDB transaction suites: 2 passed. Includes authorization, tampered bookings, duplicates, slot contention, moderation/audit rollback, encrypted receipts/gallery, wallet spending/refund, limiter spoofing/expiry/capacity and serverless Firebase compatibility.
+- Frontend: 24 tests passed; lint and production build passed. Final build has lazy routes, a 372.81 kB entry and 174.85 kB Firebase chunk; no 500 kB chunk warning.
 - Both production dependency audits report zero vulnerabilities after patches. Clean peer resolution now works without legacy-peer-deps. Local verification runtime is Node 24; deployment/CI target is Node 22.
 - Production build target checked without printing credentials: API gadget-aid-server.vercel.app, Firebase project gadget-aid. No production secret, account, role, encryption key or database migration is changed by this release.
-- Prior full-flow browser evidence: AUDIT_FOLLOWUP.md, PHASE_11_VALIDATION.md and PHASE_12_VALIDATION.md. Synthetic fixtures only for private mutation flows. Live public smoke results and release identifiers will be recorded after deployment.
+- Prior full-flow browser evidence: AUDIT_FOLLOWUP.md, PHASE_11_VALIDATION.md and PHASE_12_VALIDATION.md. Synthetic fixtures only for private mutation flows. Live public smoke results, 40 responsive checks and final release identifiers are recorded in LIVE_FULL_RELEASE.md. Node 22 GitHub checks passed for source commit 68e8a81.
 
 ## Configuration still required
 
@@ -48,4 +50,4 @@ Booking email needs an operator-owned verified sending domain/sender, backend Re
 
 ## Release and rollback
 
-Publish the backend first, check readiness/private-route rejection/CORS, then deploy only Firebase Hosting with the matching production frontend build. Reuse existing projects and secret stores; never generate a replacement receipt key. Previous backend checkpoint: dpl_H3v7KVV2XQsxnAkCAb6q9NRX5Jy9. Previous Firebase Hosting version: 42daecc043b1c521. Coordinate rollback of client/server and preserve all existing encryption key material. Deployment evidence follows in LIVE_FULL_RELEASE.md.
+Published the backend first after checking an isolated deployment, then deployed only Firebase Hosting with the matching frontend. Existing projects and secret stores were reused; no receipt key was changed. Final backend: dpl_2ntyZkci3BH7nAvhhWcqBB1KaFEr; frontend: 9656d1244380df8d. Previous backend checkpoint: dpl_H3v7KVV2XQsxnAkCAb6q9NRX5Jy9; previous Firebase Hosting version: 42daecc043b1c521. Coordinate rollback of client/server and preserve all existing encryption key material. See LIVE_FULL_RELEASE.md.
