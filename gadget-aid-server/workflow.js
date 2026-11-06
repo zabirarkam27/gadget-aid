@@ -1,3 +1,4 @@
+const {releaseReservation,runTransaction}=require("./technicians");
 const { ObjectId } = require("mongodb");
 const {
   fail,
@@ -259,13 +260,16 @@ const createWorkflow = ({ collections, clock, serializeBooking }) => {
       repair: next.repair,
       updatedAt: now,
     };
-    const result = await db.bookings.updateOne(filter, { $set: update });
-    if (!result.matchedCount)
-      fail(
-        409,
-        "This repair has changed. Refresh it before trying again.",
-        "STALE_WORKFLOW",
-      );
+    const commit = async target => {
+      const result = await target.bookings.updateOne(filter, { $set: update });
+      if (!result.matchedCount)
+        fail(409, "This repair has changed. Refresh it before trying again.", "STALE_WORKFLOW");
+      if (booking.appointment?.startsAt instanceof Date && ["cancelled", "rejected"].includes(next.status))
+        await releaseReservation(target, booking);
+    };
+    if (booking.appointment?.startsAt instanceof Date && ["cancelled", "rejected"].includes(next.status))
+      await runTransaction(db, commit);
+    else await commit(db);
     return view(
       { ...booking, ...update },
       { customer: ctx.customer, provider: ctx.provider },

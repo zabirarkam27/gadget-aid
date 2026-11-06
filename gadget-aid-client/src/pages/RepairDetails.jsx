@@ -1,3 +1,4 @@
+import BookingReview from "../components/dashboard/BookingReview";
 import BookingConversation from "../components/dashboard/BookingConversation";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
@@ -166,7 +167,7 @@ const RepairWorkspace = ({ id }) => {
               <div className="flex flex-wrap gap-4 items-center">
                 <StatusBadge status={booking.status} />
                 <span className="ga-muted text-sm">
-                  Preferred date: {dateLabel(booking.date)}
+                  {booking.appointment?"Reserved appointment":"Preferred date"}: {dateLabel(booking.date)}{booking.appointment?` · ${booking.appointment.time} (Bangladesh, one hour)`:""}
                 </span>
               </div>
               <p className="text-sm ga-muted break-all">Reference: {id}</p>
@@ -601,6 +602,7 @@ const RepairWorkspace = ({ id }) => {
               </div>
               <div className="space-y-6">
                 <BookingConversation bookingId={id} />
+                <BookingReview bookingId={id} status={booking.status} />
                 <Panel title="Repair timeline">
                   {!booking.repair.events.length ? (
                     <p className="ga-muted">

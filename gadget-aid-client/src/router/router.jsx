@@ -1,3 +1,5 @@
+import TechnicianProfile from "../pages/TechnicianProfile";
+import TechnicianSettings from "../pages/TechnicianSettings";
 import Notifications from "../pages/Notifications";
 import RepairDetails from "../pages/RepairDetails";
 import { createBrowserRouter } from "react-router-dom";
@@ -22,6 +24,8 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <Error />,
     children: [
+      {path:"/technicians/:id",element:<TechnicianProfile />},
+      {path:"/my-technician",element:<PrivateRoutes><TechnicianSettings /></PrivateRoutes>},
       {path:"/notifications",element:<PrivateRoutes><Notifications /></PrivateRoutes>},
       {path:"/bookings/:id",element:<PrivateRoutes><RepairDetails /></PrivateRoutes>},
       { path: "/forgot-password", element: <ForgotPassword /> },

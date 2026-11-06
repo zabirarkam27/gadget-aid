@@ -1,3 +1,5 @@
+const {createTechnicians,reserveBooking} = require("./technicians");
+const {createReviews} = require("./reviews");
 const {createCommunication} = require("./communication");
 const {createWorkflow,initialRepair} = require("./workflow");
 const express = require("express");
@@ -70,7 +72,7 @@ const createApp = ({ getCollections, verifyIdToken, origins = ["http://localhost
   });
 
   app.post("/bookings",authenticated,async(req,res)=>{
-    checkKeys(req.body,["serviceId","date","instruction","serviceName","serviceImage","providerEmail","providerName","price","status","userName","userEmail"]);
+    checkKeys(req.body,["serviceId","date","instruction","serviceName","serviceImage","providerEmail","providerName","price","status","userName","userEmail","time"]);
     const id=idValue(req.body.serviceId);
     if(!validDate(req.body.date) || req.body.date < todayInDhaka(clock()))fail(400,"Choose today or a future date in Bangladesh time.","VALIDATION_ERROR",{date:"Choose today or a future date."});
     if(req.body.instruction !== undefined && (typeof req.body.instruction !== "string" || req.body.instruction.length > 2000))fail(400,"Keep repair instructions within 2,000 characters.","VALIDATION_ERROR",{instruction:"Use up to 2,000 characters."});
@@ -90,7 +92,7 @@ const createApp = ({ getCollections, verifyIdToken, origins = ["http://localhost
     if(existing)return res.status(409).json({message:"You already have a booking for this service and date. Check My bookings.",code:"DUPLICATE_BOOKING",bookingId:existing._id});
     const record={_id:bookingId(req.user,serviceId,date),serviceId,serviceName:canonical.name,serviceImage:canonical.image,providerUid:typeof service.providerUid === "string" ? service.providerUid : null,providerEmail:canonical.providerEmail,providerName:canonical.providerName,userUid:req.user.uid,userEmail:req.user.email,userName:req.user.name,date,instruction:(req.body.instruction || "").trim(),price:canonical.price,status:"pending",createdAt:clock(),updatedAt:clock()};
     Object.assign(record,initialRepair(record,req.user,clock(),true));
-    try{await bookings.insertOne(record);res.status(201).json({acknowledged:true,insertedId:record._id,bookingId:record._id});}
+    try{if(!((await collections()).technicians))fail(503,"Scheduling is unavailable.","SERVICE_UNAVAILABLE");await reserveBooking(await collections(),record,service,req.body.time,clock);res.status(201).json({acknowledged:true,insertedId:record._id,bookingId:record._id});}
     catch(error){
       if(error.code !== 11000)throw error;
       const duplicate=await bookings.findOne({_id:record._id,...customerQuery(req.user)});
@@ -124,6 +126,17 @@ const createApp = ({ getCollections, verifyIdToken, origins = ["http://localhost
   app.post("/bookings/:id/messages",authenticated,communication.sendMessage);
   app.post("/bookings/:id/messages/read",authenticated,communication.markThread);
   app.get("/internal/jobs/email",communication.deliver);
+  const technicians=createTechnicians({collections,clock});
+  app.get("/my-technician",authenticated,technicians.self);
+  app.put("/my-technician",authenticated,technicians.save);
+  app.get("/technicians/:id",technicians.read);
+  app.get("/services/:id/availability",technicians.availability);
+  const reviews=createReviews({collections,clock});
+  app.get("/technicians/:id/reviews",reviews.list);
+  app.get("/bookings/:id/review",authenticated,reviews.own);
+  app.post("/bookings/:id/review",authenticated,reviews.create);
+  app.post("/reviews/:id/response",authenticated,reviews.response);
+  app.post("/reviews/:id/report",authenticated,reviews.report);
   app.use((req,res)=>res.status(404).json({message:"Endpoint not found.",code:"NOT_FOUND"}));
   app.use((error,req,res,next)=>{
     if(res.headersSent)return next(error);

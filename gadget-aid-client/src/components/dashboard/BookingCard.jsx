@@ -32,7 +32,7 @@ const BookingCard = ({ booking, provider = false, action }) => {
           </p>
           <p className="inline-flex gap-2 items-center">
             <FiCalendar aria-hidden="true" />
-            {dateLabel(booking.date)}
+            {dateLabel(booking.date)}{booking.appointment?` · ${booking.appointment.time} BD`:""}
           </p>
         </div>
         <div className="mt-auto space-y-4">

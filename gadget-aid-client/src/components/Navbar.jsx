@@ -10,7 +10,7 @@ import Brand from "./ui/Brand";
 import Avatar from "./ui/Avatar";
 
 const publicLinks = [["/", "Home"], ["/services", "Services"], ["/contact-us", "Contact"]];
-const accountLinks = [["/notifications", "Notifications"],["/booked-services", "My bookings"], ["/add-service", "Add a service"], ["/manage-services", "My services"], ["/service-to-do", "Work queue"]];
+const accountLinks = [["/my-technician", "Technician profile"],["/notifications", "Notifications"],["/booked-services", "My bookings"], ["/add-service", "Add a service"], ["/manage-services", "My services"], ["/service-to-do", "Work queue"]];
 const navClass = ({ isActive }) => `ga-nav-link ${isActive ? "ga-nav-active" : ""}`;
 
 const Navbar = () => {

@@ -7,7 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 const require = createRequire(import.meta.url);
 const {createApp}=require("../../gadget-aid-server/app.js");
 const {createFixture,verifyIdToken,fixedTime}=require("../../gadget-aid-server/tests/fixtures.cjs");
-const fixture=createFixture({seedBooking:true});
+const fixture=createFixture({seedBooking:true,seedInProgress:true});
 const qaStartedAt=Date.now();
 const api=createApp({getCollections:async()=>fixture.db,verifyIdToken,clock:()=>new Date(fixedTime.getTime()+Date.now()-qaStartedAt),origins:["http://127.0.0.1:5176","http://localhost:5176"]});
 const apiServer=api.listen(5055,"127.0.0.1");

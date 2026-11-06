@@ -1,4 +1,4 @@
-# API contract — Phase 7
+# API contract — Phase 8
 
 Current implementation as of 2026-11-06. Historical Phase 0 API map remains in API_MAP.md. Server entry is `gadget-aid-server/index.js`; injectable Express handlers are in `app.js`, domain validation/serialization in `domain.js`, and repair rules/handlers in `workflow-model.js` and `workflow.js`.
 
@@ -43,7 +43,7 @@ Preferred body:
 {"serviceId":"<24 hex characters>","date":"YYYY-MM-DD","instruction":"Optional details"}
 ```
 
-The date must be a real calendar date, today or later in Asia/Dhaka; it is not a reserved appointment. Instructions are optional strings, maximum2000 chars. The service must exist, be active and have a usable canonical price/provider/name.
+The date must be a real calendar date, today or later in Asia/Dhaka; it is a date request unless an appointment is selected under the Phase 8 rules below. Instructions are optional strings, maximum2000 chars. The service must exist, be active and have a usable canonical price/provider/name.
 
 Provider identity, service name/image, price, customer identity, initial pending status and timestamps are derived server-side. Matching old snapshot fields remain accepted, but mismatched price/provider/name/image and non-pending status are rejected. Unknown fields are rejected. A client-provided userName is not used; userEmail, if supplied by an old client, must match the token.
 
@@ -131,3 +131,31 @@ Notifications materialize in the `notifications` collection from committed event
 The shared frontend provider checks notifications every 30 seconds while visible and refreshes on visibility return; conversation polling runs only on the detail page. Requests abort on account/page changes and private state is reset or hidden across identity changes. The UI calls this refresh/polling, never instant real-time. Manual retry is available; failed messages keep their draft/reference until successful or edited.
 
 Email delivery configuration, retry/lease limits, operational recovery and verified-provider references are documented in [EMAIL_DELIVERY.md](EMAIL_DELIVERY.md). Preferences, attachments, message editing/deletion and realtime transport remain outside Phase 7.
+
+## Phase 8 profiles, availability and reviews
+
+| Method/path | Access | Contract |
+| --- | --- | --- |
+| GET `/my-technician` | Token | Current identity's editable profile, public fields plus revision/exists; fallback without creating a record |
+| PUT `/my-technician` | Token owner | Full editable profile and expectedRevision; response public fields plus new revision |
+| GET `/technicians/:id` | Public | Safe profile, owned active service summaries, eligible published reviews, averageRating and reviewCount |
+| GET `/technicians/:id/reviews` | Public | Eligible published review array; public review identity does not expose private booking reference |
+| GET `/services/:id/availability?date=YYYY-MM-DD` | Public | configured, requests/appointments mode, Asia/Dhaka, 60-minute duration, date, open and unreserved slot strings |
+| GET `/bookings/:id/review` | Booking participant | eligible/reason, existing review and technicianId; only eligible customer gets a submission form |
+| POST `/bookings/:id/review` | Eligible customer | rating integer 1–5 and feedback 20–2000 chars; 201 public review; duplicate409 REVIEW_EXISTS |
+| POST `/reviews/:id/response` | Canonical service owner | text 3–2000 chars; one permanent provider response |
+| POST `/reviews/:id/report` | Token | category abuse/privacy/spam/authenticity/other and details 10–1000 chars; 201 pending or200 already_reported |
+
+Editable profile fields: businessName 2–120 chars; photo optional HTTP(S) URL; bio up to2000; skills up to20 unique 2–80 char strings; categories up to12 unique 2–80 char strings; area up to160; yearsExperience null or integer0–80; certifications up to10 unique 2–160 char claims; availability; expectedRevision. Unknown fields, owner IDs/emails, verification flags, rating aggregates and reservations are rejected. Identity is derived from the token, and stored UID/email must both match. Public claimsVerified is always false. Legacy listings get a safe fallback profile without a backfill. Public technician responses omit owner credentials, calendar reservations, private participant identities and report data.
+
+Availability input is `{configured,mode,weekly,exceptions}`. Mode is requests or appointments. Weekly contains exactly seven distinct day0–6 entries (Sunday–Saturday) with closed boolean, start and end HH:00. Closing may be24:00, must follow opening, and overnight/split windows are unsupported. Exceptions have a unique valid date and the same closed/start/end fields, replacing that day's weekly window; at most60. Time zone and slot duration are server-controlled. Configured bookings are at most90 days ahead. Request mode validates open days and rejects a submitted time; unconfigured providers keep the existing date-request behavior.
+
+POST `/bookings` now also accepts optional `time` HH:00. For configured appointment providers it is required, must be an offered future whole-hour start within open hours, and must be free across every service owned by that technician. For date-request providers it must be omitted/empty. Client-supplied appointment IDs, durations and timestamps are rejected. Booking reads include a trusted appointment object with technicianId, date, time, Asia/Dhaka, server-derived UTC startsAt/endsAt and durationMinutes60, or null for date requests. Old JSON lookalike appointment fields are not trusted.
+
+A MongoDB transaction rechecks date, canonical listing and schedule, reserves the provider slot by profile/calendar revision, guards the canonical listing and inserts the booking together. Booking failure rolls back the reservation. Rejection/cancellation updates repair history and releases a reserved slot in the same transaction. Schedule edits preserve all nonexpired reserved windows and reject conflicts. Up to500 nonexpired calendar reservations are retained; past entries are pruned on calendar writes. Stale revision409 STALE_PROFILE, conflicting hours409 AVAILABILITY_CONFLICT, closed date409 PROVIDER_CLOSED, missing/invalid slot409 SLOT_REQUIRED and taken/past time409 SLOT_UNAVAILABLE are mapped to usable client feedback. Transaction support is required; no unsafe fallback exists.
+
+The original customer/service/date duplicate rule remains, even after cancellation. It prevents duplicate creation, rather than implementing rescheduling or replacement of existing records. Reservations hold capacity from pending request onward; this does not bypass provider acceptance or quotation approval.
+
+Review eligibility requires customer identity match, another provider, completed workflow and a server-recorded provider completed-handover event in trusted tracking. A plain legacy completed string is insufficient. Deterministic per-booking review IDs prevent concurrent duplicates. Public aggregates include only valid ratings on eligible canonical-provider records whose deterministic ID and trusted creation marker match and whose moderation state is published; null average represents no reviews. Customer email/UID and private booking reference are omitted. There is no client rating-count field, review editing or self-review exception.
+
+Reports remain private and deduplicate per verified account/review; they do not auto-hide or change aggregates. A server-only operator CLI, requiring existing database authorization and an explicit write opt-in, can hide/restore with actor/reason/time audit history and resolve pending reports transactionally. No public admin/moderation endpoint or new role is created. Operator steps, limits, local transaction test evidence and rollout requirements are in [PHASE_8_VALIDATION.md](PHASE_8_VALIDATION.md).

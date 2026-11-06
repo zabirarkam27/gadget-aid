@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-const links = [
+const links = [["/my-technician", "Technician profile"],
   ["/notifications", "Notifications"],
   ["/booked-services", "My bookings"],
   ["/service-to-do", "Work queue"],

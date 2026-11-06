@@ -1,3 +1,5 @@
+import TechnicianProfile from "../../src/pages/TechnicianProfile";
+import TechnicianSettings from "../../src/pages/TechnicianSettings";
 import Notifications from "../../src/pages/Notifications";
 import RepairDetails from "../../src/pages/RepairDetails";
 import { useState } from "react";
@@ -21,6 +23,8 @@ import ContactUs from "../../src/pages/ContactUs";
 import {setFixtureIdentity,getFixtureUser,setFixtureOffline} from "./state";
 const protectedPage = page => <PrivateRoutes>{page}</PrivateRoutes>;
 const router=createBrowserRouter([{path:"/",element:<MainLayout />,errorElement:<ErrorPage />,children:[
+ {path:"technicians/:id",element:<TechnicianProfile />},
+ {path:"my-technician",element:protectedPage(<TechnicianSettings />)},
  {path:"notifications",element:protectedPage(<Notifications />)},
  {path:"bookings/:id",element:protectedPage(<RepairDetails />)},
   {index:true,element:<Home />},{path:"services",element:<Services />},{path:"services/:id",element:protectedPage(<ServiceDetails />)},

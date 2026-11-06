@@ -37,11 +37,14 @@ class MemoryCollection {
   }
 }
 const serviceFields={name:"Laptop diagnostic repair",price:85,area:"Dhaka",description:"Diagnosis and repair for a laptop that will not start.",image:"http://127.0.0.1:5176/banner.png"};
-const createFixture=({seedBooking=false}={})=>{
+const createFixture=({seedBooking=false,seedInProgress=false}={})=>{
   const service={_id:new ObjectId(ids.service),...serviceFields,providerUid:users.provider.uid,providerEmail:users.provider.email,providerName:users.provider.name,providerPhoto:null,createdAt:fixedTime,updatedAt:fixedTime};
   const otherService={...service,_id:new ObjectId(ids.otherService),name:"Phone display repair",providerUid:users.other.uid,providerEmail:users.other.email,providerName:users.other.name};
   const booking={_id:new ObjectId(ids.booking),serviceId:ids.service,serviceName:service.name,serviceImage:service.image,providerUid:users.provider.uid,providerEmail:users.provider.email,providerName:users.provider.name,userUid:users.customer.uid,userEmail:users.customer.email,userName:users.customer.name,date:"2026-11-06",instruction:"The laptop does not start. Please check the power connection.",price:85,status:"pending",createdAt:fixedTime};
-  const db={notifications:new MemoryCollection(),threads:new MemoryCollection(),services:new MemoryCollection([service,otherService]),bookings:new MemoryCollection(seedBooking ? [booking] : [])};
+  const db={technicians:new MemoryCollection(),reviews:new MemoryCollection(),reviewReports:new MemoryCollection(),notifications:new MemoryCollection(),threads:new MemoryCollection(),services:new MemoryCollection([service,otherService]),bookings:new MemoryCollection(seedBooking ? [booking] : [])};
+  if(seedInProgress)db.bookings.rows.push({...clone(booking),_id:new ObjectId("555555555555555555555555"),date:"2026-11-04",status:"working",instruction:"Demo repair already in progress; verify quality and hand over before reviewing."});
+  let transactionTail=Promise.resolve();
+  db.transaction=async work=>{const before=transactionTail;let release;transactionTail=new Promise(resolve=>{release=resolve;});await before;const backups=Object.fromEntries(Object.entries(db).filter(([,value])=>value instanceof MemoryCollection).map(([key,value])=>[key,clone(value.rows)]));try{return await work(db);}catch(error){for(const [key,rows] of Object.entries(backups))db[key].rows=rows;throw error;}finally{release();}};
   return {db,service,otherService,booking};
 };
 const verifyIdToken=async token=>{if(!users[token])throw new Error("invalid test token");return users[token];};

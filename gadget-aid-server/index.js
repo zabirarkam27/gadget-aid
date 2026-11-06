@@ -1,3 +1,4 @@
+const {createDatabase}=require("./database");
 require("dotenv").config();
 const dns = require("node:dns");
 const {MongoClient,ServerApiVersion} = require("mongodb");
@@ -12,8 +13,7 @@ let ready;
 const getCollections = () => {
   if(!ready)ready=client.connect().then(async()=>{
     await client.db("admin").command({ping:1});
-    const db=client.db("gadgetAidDB");
-    return {services:db.collection("services"),bookings:db.collection("bookings"),notifications:db.collection("notifications"),threads:db.collection("bookingThreads")};
+    return createDatabase(client);
   }).catch(error=>{ready=null;throw error;});
   return ready;
 };

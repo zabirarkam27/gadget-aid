@@ -1,3 +1,4 @@
+import BookingAvailability from "./dashboard/BookingAvailability";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiMapPin, FiCalendar, FiArrowUpRight } from "react-icons/fi";
@@ -24,6 +25,9 @@ const ServiceDetails = () => {
   const [attempt, setAttempt] = useState(0);
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState("");
+  const [time,setTime]=useState("");
+  const [availability,setAvailability]=useState(null);
+  const [slotAttempt,setSlotAttempt]=useState(0);
   const [instruction, setInstruction] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState("");
@@ -45,17 +49,18 @@ const ServiceDetails = () => {
     if (bookingLock.current) return;
     const dateError = bookingDateError(date);
     if (dateError) {setBookingError(dateError);return;}
+    if(!availability || availability.date!==date || availability.loading || availability.error || !availability.open || (availability.mode==="appointments"&&!availability.slots.includes(time))){setBookingError("Check availability and choose an available time before submitting.");return;}
     const service = state.service;
     bookingLock.current = true;
     setSubmitting(true); setBookingError("");
     try {
       const result = await authFetch(`${API_URL}/bookings`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        serviceId:service._id,date,instruction:instruction.trim()
+        serviceId:service._id,date,instruction:instruction.trim(),...(time?{time}:{})
       })}).then(readJson);
       if (!result.insertedId) throw new Error("Booking was not confirmed");
       toast.success("Booking request sent. You can follow it in My bookings.");
       setOpen(false); navigate("/booked-services");
-    } catch (failure) {setBookingError(failure.message || "Your booking could not be confirmed. Check My bookings before trying again.");}
+    } catch (failure) {if(["SLOT_UNAVAILABLE","SLOT_REQUIRED","PROVIDER_CLOSED","STALE_PROFILE"].includes(failure.code))setSlotAttempt(v=>v+1);setBookingError(failure.message || "Your booking could not be confirmed. Check My bookings before trying again.");}
     finally {bookingLock.current = false;setSubmitting(false);}
   };
   const {service,loading,error,missing} = state;
@@ -67,17 +72,18 @@ const ServiceDetails = () => {
         <div className="mb-8"><p className="ga-eyebrow mb-4">Repair service</p><h1 className="text-page font-bold max-w-3xl">{service.name}</h1><p className="ga-muted flex items-center gap-2 mt-4"><FiMapPin aria-hidden="true" />{service.area || "Ask the provider about coverage"}</p></div>
         <div className="grid lg:grid-cols-[1.6fr_1fr] gap-8 items-start">
           <div className="min-w-0"><div className="aspect-[16/10] overflow-hidden rounded-2xl bg-base-300"><ServiceImage src={service.image} alt={service.name} eager /></div><div className="ga-surface p-6 sm:p-8 mt-6"><h2 className="text-section font-semibold mb-4">About this repair</h2><p className="ga-muted whitespace-pre-line break-words">{service.description || "Contact the provider for service information."}</p></div></div>
-          <aside className="ga-surface p-6 sm:p-8 lg:sticky lg:top-28"><p className="ga-muted text-sm">Listed service price</p><p className="ga-numeric text-4xl font-bold mt-2 mb-7">{service.price == null ? "Ask provider" : `$${service.price}`}</p><div className="flex items-center gap-3 py-5 border-y border-base-300"><Avatar src={service.providerPhoto || service.providerImage} name={service.providerName || "Service provider"} className="h-12 w-12" /><div className="min-w-0"><p className="ga-muted text-xs mb-1">Offered by</p><p className="font-semibold break-words">{service.providerName || "Service provider"}</p></div></div><Button disabled={service.bookable === false} className="w-full mt-6" onClick={()=>{setBookingError("");setOpen(true);}}>Request a booking <FiArrowUpRight aria-hidden="true" /></Button>{service.bookable === false && <p role="status" className="text-warning text-sm mt-4">This listing is not accepting new requests. Browse another service.</p>}<p className="ga-muted text-sm mt-4">Choose your preferred date and describe the issue. The provider will need to confirm arrangements.</p><div className="mt-7 border-t border-base-300 pt-5 space-y-4 text-sm ga-muted"><p className="flex gap-2"><FiCalendar className="shrink-0 mt-1" aria-hidden="true" />Your selected date is a preference, not a reserved time slot.</p><p>Confirm repair scope, extra charges and any warranty terms with the provider before work begins.</p><p>No online payment is collected by this booking form.</p></div></aside>
+          <aside className="ga-surface p-6 sm:p-8 lg:sticky lg:top-28"><p className="ga-muted text-sm">Listed service price</p><p className="ga-numeric text-4xl font-bold mt-2 mb-7">{service.price == null ? "Ask provider" : `$${service.price}`}</p><div className="flex items-center gap-3 py-5 border-y border-base-300"><Avatar src={service.providerPhoto || service.providerImage} name={service.providerName || "Service provider"} className="h-12 w-12" /><div className="min-w-0"><p className="ga-muted text-xs mb-1">Offered by</p><p className="font-semibold break-words">{service.providerName || "Service provider"}</p></div></div><Button to={`/technicians/${service.technicianId}`} variant="ghost" className="w-full mt-4">View technician profile and reviews</Button><Button disabled={service.bookable === false} className="w-full mt-6" onClick={()=>{setBookingError("");setOpen(true);}}>Request a booking <FiArrowUpRight aria-hidden="true" /></Button>{service.bookable === false && <p role="status" className="text-warning text-sm mt-4">This listing is not accepting new requests. Browse another service.</p>}<p className="ga-muted text-sm mt-4">Choose a date to check provider hours and available appointment times.</p><div className="mt-7 border-t border-base-300 pt-5 space-y-4 text-sm ga-muted"><p className="flex gap-2"><FiCalendar className="shrink-0 mt-1" aria-hidden="true" />Appointment times are reserved only after a successful request. Date-only requests require provider confirmation.</p><p>Confirm repair scope, extra charges and any warranty terms with the provider before work begins.</p><p>No online payment is collected by this booking form.</p></div></aside>
         </div>
         <Dialog open={open} onClose={()=>{if(!submitting)setOpen(false);}} title="Request this repair">
           <form onSubmit={handleBooking} className="space-y-5">
             <div className="rounded-xl bg-base-200 p-4"><p className="font-semibold">{service.name}</p><p className="ga-muted text-sm mt-1">{service.providerName} · <span className="ga-numeric">${service.price}</span></p></div>
             <FormField label="Your email" type="email" value={user?.email || ""} readOnly />
-            <FormField label="Preferred date" type="date" value={date} min={bookingToday()} required onChange={event=>setDate(event.target.value)} helper="Dates use Bangladesh time. Confirm the final appointment with your provider." disabled={submitting} />
+            <FormField label="Preferred date" type="date" value={date} min={bookingToday()} required onChange={event=>setDate(event.target.value)} helper="Dates and appointment times use Bangladesh time." disabled={submitting} />
+            <BookingAvailability serviceId={service._id} date={date} time={time} setTime={setTime} onAvailability={setAvailability} attempt={slotAttempt} />
             <FormField label="Repair instructions" as="textarea" rows={4} maxLength={2000} placeholder="Describe the device, issue and any useful instructions." value={instruction} onChange={event=>setInstruction(event.target.value)} disabled={submitting} />
             {bookingError && <p role="alert" className="text-error text-sm">{bookingError}</p>}
             {bookingError && <Link to="/booked-services" className="text-primary text-sm ga-text-link">Check My bookings →</Link>}
-            <Button type="submit" loading={submitting} className="w-full">{submitting ? "Sending request…" : "Send booking request"}</Button>
+            <Button type="submit" loading={submitting} disabled={availability?.loading || !!availability?.error || availability?.open===false || (availability?.mode==="appointments" && !time)} className="w-full">{submitting ? "Sending request…" : "Send booking request"}</Button>
           </form>
         </Dialog>
       </>}
