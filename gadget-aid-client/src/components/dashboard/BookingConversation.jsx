@@ -185,7 +185,8 @@ const BookingConversation = ({ bookingId }) => {
             <p className="ga-muted text-sm">
               {thread.limitReached
                 ? "This conversation reached its 200-message limit. Existing messages remain available."
-                : "The other participant is unavailable. Existing messages remain available."}
+                : thread.sendRestriction ||
+                  "The other participant is unavailable. Existing messages remain available."}
             </p>
           )}
         </>

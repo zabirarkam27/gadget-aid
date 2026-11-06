@@ -1,3 +1,4 @@
+import BookingDisputes from "../components/dashboard/BookingDisputes";
 import BookingReview from "../components/dashboard/BookingReview";
 import BookingConversation from "../components/dashboard/BookingConversation";
 import { useEffect, useRef, useState } from "react";
@@ -117,7 +118,7 @@ const RepairWorkspace = ({ id }) => {
     a = booking?.actions || {},
     quote = booking?.currentQuotation;
   const provider =
-    booking?.permissions.provider &&
+    (booking?.permissions.provider || booking?.permissions.providerHistory) &&
     (search.get("view") === "provider" || !booking?.permissions.customer);
   const transition = a.transitions?.find((item) => item.status === target);
   const total =
@@ -167,7 +168,13 @@ const RepairWorkspace = ({ id }) => {
               <div className="flex flex-wrap gap-4 items-center">
                 <StatusBadge status={booking.status} />
                 <span className="ga-muted text-sm">
-                  {booking.appointment?"Reserved appointment":"Preferred date"}: {dateLabel(booking.date)}{booking.appointment?` · ${booking.appointment.time} (Bangladesh, one hour)`:""}
+                  {booking.appointment
+                    ? "Reserved appointment"
+                    : "Preferred date"}
+                  : {dateLabel(booking.date)}
+                  {booking.appointment
+                    ? ` · ${booking.appointment.time} (Bangladesh, one hour)`
+                    : ""}
                 </span>
               </div>
               <p className="text-sm ga-muted break-all">Reference: {id}</p>
@@ -603,6 +610,7 @@ const RepairWorkspace = ({ id }) => {
               <div className="space-y-6">
                 <BookingConversation bookingId={id} />
                 <BookingReview bookingId={id} status={booking.status} />
+                <BookingDisputes bookingId={id} />
                 <Panel title="Repair timeline">
                   {!booking.repair.events.length ? (
                     <p className="ga-muted">

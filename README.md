@@ -16,7 +16,9 @@ A gadget repair service marketplace built with React/Vite, Firebase Authenticati
 - Weekly hours, date exceptions/holidays, reserved appointment slots and atomic cancellation release.
 - One review per verified completed booking, permanent provider responses and private reports with audited operator moderation.
 
-There is one account model: an authenticated user can book and offer services. Admin roles, payments and instant push notifications are not implemented. Providers can offer date requests or reserved one-hour appointments in Bangladesh time. Profile claims are self-reported; completed-booking reviews are checked against server-recorded handover.
+Signed-in customers can book and review eligible repairs. Offering services requires approved Technician access. Admin and Super Admin permissions are server controlled; public visitors can browse. Providers can offer date requests or reserved one-hour appointments in Bangladesh time. Profile claims are self-reported; completed-booking reviews are checked against server-recorded handover. Payments and instant push notifications are not implemented.
+
+Phase 9 adds platform operations at `/admin`: overview, masked accounts, technician applications/publication, listings, bookings, disputes, reviews/reports, categories, roles and audit/email logs. Sensitive actions require recent sign-in, a reason, explicit confirmation and atomic audit persistence. See [approved authorization](docs/PHASE_9_AUTHORIZATION.md) and [Phase 9 setup and verification](docs/PHASE_9_VALIDATION.md). No real account is automatically promoted. Review existing-provider onboarding before deploying the matched client/server.
 
 ## Run locally
 
@@ -54,7 +56,7 @@ New booking requests send only `serviceId`, `date` and optional `instruction`. T
 
 Removing a service hides it from the catalogue and preserves its ownership record so existing repairs remain manageable. Legacy bookings whose service was physically deleted before this change remain visible to their customer; they are withheld from provider queues when ownership cannot be verified. Recovery requires a separately reviewed reconciliation, not trusting the old client-supplied provider field.
 
-See [current API contract](docs/API_CONTRACT.md), [product plan](plan.md) and [Phase 5 validation](docs/PHASE_5_VALIDATION.md), [Phase 6 validation](docs/PHASE_6_VALIDATION.md) and [Phase 7 validation](docs/PHASE_7_VALIDATION.md) and [Phase 8 validation](docs/PHASE_8_VALIDATION.md).
+See [current API contract](docs/API_CONTRACT.md), [product plan](plan.md) and [Phase 5 validation](docs/PHASE_5_VALIDATION.md), [Phase 6 validation](docs/PHASE_6_VALIDATION.md), [Phase 7 validation](docs/PHASE_7_VALIDATION.md), [Phase 8 validation](docs/PHASE_8_VALIDATION.md) and [Phase 9 validation](docs/PHASE_9_VALIDATION.md).
 
 ## Deployment
 

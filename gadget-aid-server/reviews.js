@@ -31,6 +31,13 @@ const publicReview = (row) => ({
     : null,
 });
 const visibleReviews = async (db, id) => {
+  const control = await db.entityControls.findOne({ _id: `technician:${id}` });
+  if (
+    control?.state === "restricted" ||
+    control?.accountRestricted ||
+    control?.roleRevoked
+  )
+    return [];
   const rows = await db.reviews
       .find({ technicianId: id, moderationState: "published" })
       .toArray(),

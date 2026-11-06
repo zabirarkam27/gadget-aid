@@ -159,3 +159,32 @@ The original customer/service/date duplicate rule remains, even after cancellati
 Review eligibility requires customer identity match, another provider, completed workflow and a server-recorded provider completed-handover event in trusted tracking. A plain legacy completed string is insufficient. Deterministic per-booking review IDs prevent concurrent duplicates. Public aggregates include only valid ratings on eligible canonical-provider records whose deterministic ID and trusted creation marker match and whose moderation state is published; null average represents no reviews. Customer email/UID and private booking reference are omitted. There is no client rating-count field, review editing or self-review exception.
 
 Reports remain private and deduplicate per verified account/review; they do not auto-hide or change aggregates. A server-only operator CLI, requiring existing database authorization and an explicit write opt-in, can hide/restore with actor/reason/time audit history and resolve pending reports transactionally. No public admin/moderation endpoint or new role is created. Operator steps, limits, local transaction test evidence and rollout requirements are in [PHASE_8_VALIDATION.md](PHASE_8_VALIDATION.md).
+# Phase 9 operations extension
+
+The approved role model and production onboarding requirements are documented in [Phase 9 authorization](PHASE_9_AUTHORIZATION.md) and [setup/validation](PHASE_9_VALIDATION.md). Existing participant ownership and repair-approval rules remain enforced.
+
+| Endpoint | Access and input |
+| --- | --- |
+| `GET /my-capabilities` | Signed-in caller only; current server role/capabilities, own application/publication state, provider-history indicator. |
+| `POST /technician-application` | Unrestricted signed-in caller; `businessName`, `statement`, `expectedRevision`; approval is not client controlled. |
+| `GET /categories` | Public active categories only. Service create/edit accepts optional active `categoryId`; archived current references may be retained. |
+| `POST /bookings/:id/disputes` | Actual participant; `subject` (5–160), `description` (20–4,000); one request per participant/booking. |
+| `GET /bookings/:id/disputes`, `GET /my-disputes` | Participant's own submissions; `my-disputes` accepts bounded pagination and `status`. |
+| `GET /admin/overview` | Admin/Super Admin; actual record counts. |
+| `GET /admin/customers` | Masked Firebase directory with `limit`, Firebase `cursor`; no arbitrary search/export. |
+| `GET /admin/{bookings,services,technicians,applications,roles,reviews,reports,disputes,categories,audit,email}` | Admin/Super Admin; `{items,nextCursor,limit}`; descending ID cursors scoped to filters, default 25/max 100. `q` literal search supported on bookings/services/technicians/applications/disputes/categories/audit; allowlisted `status` on bookings/applications/reviews/reports/disputes/categories/email. Unsupported filters/operators are rejected. |
+| `POST /admin/inspect/{customer,booking,technician,application,service,dispute,review,report}/:id` | Sensitive audited detail; `reason`, `confirmed:true`; recent sign-in. Whitelisted fields only. Profile claims remain explicitly unverified. |
+| `GET /admin/role-target/:uid` | Minimal masked exact target and role revision; no credentials. |
+| `POST /admin/accounts/:uid/state` | `state:active/restricted`; privileged peers excluded. |
+| `POST /admin/roles/:uid` | `role:admin/technician`, `active:boolean`; Super Admin required for Admin changes. Active Technician grants require an approved application. No Super Admin assignment endpoint. |
+| `POST /admin/applications/:uid/decision` | `decision:approve/changes_requested`; approval and Technician grant commit together. |
+| `POST /admin/services/:id/publication` | `state:visible/hidden`; separate from provider edits/removal. |
+| `POST /admin/technicians/:id/publication` | `state:approved/changes_requested/restricted`; publication review does not verify credentials. |
+| `POST /admin/reviews/:id/moderate` | `action:hide/restore`; report resolution and review moderation commit with audit. |
+| `POST /admin/reports/:id/resolve` | `resolution` (10–1,000); does not automatically hide the review. |
+| `POST /admin/disputes/:id/resolve` | `state:in_review/resolved`, `resolution` (required 10–2,000 when resolved); records history without changing repair status/payments. |
+| `POST /admin/categories`, `POST /admin/categories/:id` | `name`, immutable `slug`, `state:active/archived`; existing references preserved. |
+
+All admin POSTs require a specific 10–1,000 character `reason`, `confirmed:true` and signed Firebase `auth_time` within 10 minutes. Mutations also require integer `expectedRevision` (zero for absent controls/new categories). Stale state returns 409; no automatic replay. Reasons on applications/publication are shared with the affected provider/applicant. Private inspections use POST to require an accountable reason before data is returned; they do not require a mutation revision. State and minimal audit entries share one transaction. Failure returns a safe error and no private details or partial state.
+
+Common additional codes: `ADMIN_REQUIRED`, `TECHNICIAN_REQUIRED`, `ADMIN_REAUTH_REQUIRED`, `CONFIRMATION_REQUIRED`, `ACCOUNT_RESTRICTED`, `ACCOUNT_NOT_VERIFIED`, `APPLICATION_REQUIRED`, `STALE_OPERATION`, `INVALID_CURSOR`, `CATEGORY_UNAVAILABLE`, `DISPUTE_EXISTS`. Admin requests perform Firebase revocation checking plus current server-grant validation. UI role flags never authorize API access.

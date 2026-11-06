@@ -1,4 +1,4 @@
-const {releaseReservation,runTransaction}=require("./technicians");
+const { releaseReservation, runTransaction } = require("./technicians");
 const { ObjectId } = require("mongodb");
 const {
   fail,
@@ -260,19 +260,33 @@ const createWorkflow = ({ collections, clock, serializeBooking }) => {
       repair: next.repair,
       updatedAt: now,
     };
-    const commit = async target => {
+    const commit = async (target) => {
       const result = await target.bookings.updateOne(filter, { $set: update });
       if (!result.matchedCount)
-        fail(409, "This repair has changed. Refresh it before trying again.", "STALE_WORKFLOW");
-      if (booking.appointment?.startsAt instanceof Date && ["cancelled", "rejected"].includes(next.status))
+        fail(
+          409,
+          "This repair has changed. Refresh it before trying again.",
+          "STALE_WORKFLOW",
+        );
+      if (
+        booking.appointment?.startsAt instanceof Date &&
+        ["cancelled", "rejected"].includes(next.status)
+      )
         await releaseReservation(target, booking);
     };
-    if (booking.appointment?.startsAt instanceof Date && ["cancelled", "rejected"].includes(next.status))
+    if (
+      booking.appointment?.startsAt instanceof Date &&
+      ["cancelled", "rejected"].includes(next.status)
+    )
       await runTransaction(db, commit);
     else await commit(db);
     return view(
       { ...booking, ...update },
-      { customer: ctx.customer, provider: ctx.provider },
+      {
+        customer: ctx.customer,
+        provider: ctx.provider && req.access.canProvide,
+        providerHistory: ctx.provider,
+      },
     );
   };
   const changeStatus = (next, req, role, type, status, now, note, extra) => {
@@ -284,7 +298,11 @@ const createWorkflow = ({ collections, clock, serializeBooking }) => {
   const read = async (req, res) => {
     const ctx = await context(req);
     res.json(
-      view(ctx.booking, { customer: ctx.customer, provider: ctx.provider }),
+      view(ctx.booking, {
+        customer: ctx.customer,
+        provider: ctx.provider && req.access.canProvide,
+        providerHistory: ctx.provider,
+      }),
     );
   };
   const transition = async (req, res) => {

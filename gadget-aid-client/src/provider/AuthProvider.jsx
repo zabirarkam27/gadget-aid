@@ -4,6 +4,7 @@ import app from "../firebase/firebase.config";
 
 import {
   getAuth,
+  sendEmailVerification,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
@@ -51,6 +52,7 @@ const AuthProvider = ({ children }) => {
     loading,
     setUser,
     createNewUser,
+    sendVerificationEmail: () => sendEmailVerification(auth.currentUser),
     login,
     logOut,
   };
@@ -58,7 +60,10 @@ const AuthProvider = ({ children }) => {
     return (
       <p role="status" className="flex items-center justify-center h-screen">
         <span className="sr-only">Loading your account</span>
-        <span className="loading loading-ring loading-lg" aria-hidden="true"></span>
+        <span
+          className="loading loading-ring loading-lg"
+          aria-hidden="true"
+        ></span>
       </p>
     );
   }

@@ -1,3 +1,4 @@
+const { assertBookable, visibleServices } = require("./access");
 const { technicianId } = require("./identities");
 const { ObjectId } = require("mongodb");
 const {
@@ -163,6 +164,7 @@ const reserveBooking = async (db, record, service, time, clock) =>
         "This service changed. Reload before booking.",
         "INVALID_SERVICE_SNAPSHOT",
       );
+    await assertBookable(tx, fresh);
     const key = technicianId(fresh.providerEmail),
       profile = await tx.technicians.findOne({ _id: new ObjectId(key) });
     if (profile && !profileMatches(profile, fresh))
@@ -458,7 +460,10 @@ const createTechnicians = ({ collections, clock }) => {
     const id = idValue(req.params.id),
       db = await database();
     let profile = await db.technicians.findOne({ _id: id });
-    const all = await db.services.find({ deletedAt: null }).toArray();
+    const all = await visibleServices(
+      db,
+      await db.services.find({ deletedAt: null }).toArray(),
+    );
     let offered = all.filter(
       (service) => technicianId(service.providerEmail || "") === String(id),
     );
@@ -472,6 +477,21 @@ const createTechnicians = ({ collections, clock }) => {
         photo: first.providerPhoto || first.providerImage,
       });
     }
+    const publication = await db.entityControls.findOne({
+      _id: `technician:${id}`,
+    });
+    if (
+      publication?.state === "restricted" ||
+      publication?.accountRestricted ||
+      publication?.roleRevoked
+    )
+      fail(404, "Technician not found.", "NOT_FOUND");
+    if (profile.ownerUid) {
+      const grant = await db.roleGrants.findOne({ _id: profile.ownerUid }),
+        account = await db.accountControls.findOne({ _id: profile.ownerUid });
+      if (account?.state === "restricted" || (grant && !grant.active))
+        fail(404, "Technician not found.", "NOT_FOUND");
+    }
     offered = offered.filter((service) =>
       serviceOwner(service, {
         email: profile.ownerEmail,
@@ -483,6 +503,7 @@ const createTechnicians = ({ collections, clock }) => {
     const sum = reviews.reduce((n, r) => n + r.rating, 0);
     res.json({
       ...publicProfile(profile),
+      publicationStatus: publication?.state || "unreviewed",
       services: offered.map((service) => {
         const value = require("./domain").serializeService(service);
         return {
@@ -514,6 +535,7 @@ const createTechnicians = ({ collections, clock }) => {
       );
     const service = await db.services.findOne({ _id: id, deletedAt: null });
     if (!service) fail(404, "Service not found.", "NOT_FOUND");
+    await assertBookable(db, service);
     const profile = await db.technicians.findOne({
       _id: new ObjectId(technicianId(service.providerEmail)),
     });

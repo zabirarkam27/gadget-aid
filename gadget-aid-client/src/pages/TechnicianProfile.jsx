@@ -146,13 +146,19 @@ const Profile = ({ id }) => {
                   </p>
                 </div>
               </div>
+              {profile.publicationStatus === "approved" && (
+                <p className="mt-5 text-sm ga-muted">
+                  Profile publication reviewed by the platform. Skills,
+                  experience and certifications remain self-reported.
+                </p>
+              )}
               <p className="mt-6 whitespace-pre-wrap break-words">
                 {profile.bio || "This provider has not added a bio yet."}
               </p>
               <div className="flex flex-wrap gap-5 mt-6">
                 <p className="font-semibold">
                   {profile.reviewCount
-                    ? `${profile.averageRating} / 5 · ${profile.reviewCount} verified completed-booking review${profile.reviewCount===1?"":"s"}`
+                    ? `${profile.averageRating} / 5 · ${profile.reviewCount} verified completed-booking review${profile.reviewCount === 1 ? "" : "s"}`
                     : "No completed-booking reviews yet"}
                 </p>
                 {selfId === id && (
@@ -171,7 +177,10 @@ const Profile = ({ id }) => {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {profile.skills.map((skill) => (
-                    <span className="badge badge-outline max-w-full h-auto whitespace-normal break-all py-1" key={skill}>
+                    <span
+                      className="badge badge-outline max-w-full h-auto whitespace-normal break-all py-1"
+                      key={skill}
+                    >
                       {skill}
                     </span>
                   ))}

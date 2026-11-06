@@ -142,12 +142,18 @@ const createCommunication = ({
           `${booking._id}:${source.id}:${to.role}:${to.uid || ""}:${to.email}`,
         ),
       );
-      const messageRead = source.kind === "message" &&
-        (thread.readThrough?.[to.role] ?? -1) >= thread.messages.findIndex(m => m.id === source.id);
+      const messageRead =
+        source.kind === "message" &&
+        (thread.readThrough?.[to.role] ?? -1) >=
+          thread.messages.findIndex((m) => m.id === source.id);
       const existing = await db.notifications.findOne({ _id: id });
       if (existing) {
         // Repair a projection racing a read receipt; the thread cursor is authoritative.
-        if (messageRead && !existing.readAt) await db.notifications.updateOne({_id:id,readAt:null},{$set:{readAt:clock()}});
+        if (messageRead && !existing.readAt)
+          await db.notifications.updateOne(
+            { _id: id, readAt: null },
+            { $set: { readAt: clock() } },
+          );
         continue;
       }
       const record = {
@@ -163,10 +169,7 @@ const createCommunication = ({
             ? booking.serviceName
             : "Repair service",
         createdAt: source.createdAt,
-        readAt:
-          messageRead
-            ? clock()
-            : null,
+        readAt: messageRead ? clock() : null,
         kind: source.kind,
         deliveryState: "pending",
         emailRevision: 0,
@@ -225,10 +228,15 @@ const createCommunication = ({
         (m, i) => i > cursor && m.senderUid !== user.uid,
       ).length,
       lastMessageId: messages.at(-1)?.id || null,
-      canSend: !!recipient(
-        ctx,
-        ctx.role === "customer" ? "provider" : "customer",
-      ),
+      sendRestriction: user.restricted
+        ? "This account can read existing messages, but cannot send new ones."
+        : ctx.role === "provider" && !user.canProvide
+          ? "Technician approval is required to send provider updates."
+          : "",
+      canSend:
+        !user.restricted &&
+        (ctx.role !== "provider" || user.canProvide) &&
+        !!recipient(ctx, ctx.role === "customer" ? "provider" : "customer"),
       limitReached: messages.length >= 200,
     };
   };
@@ -355,6 +363,12 @@ const createCommunication = ({
         409,
         "The other participant is unavailable.",
         "PARTICIPANT_UNAVAILABLE",
+      );
+    if (ctx.role === "provider" && !req.access.canProvide)
+      fail(
+        403,
+        "Technician approval is required to send provider messages.",
+        "TECHNICIAN_REQUIRED",
       );
     const id = hash(`${ctx.booking._id}:${req.user.uid}:${requestId}`);
     const thread = await mutateThread(db, ctx, (next) => {

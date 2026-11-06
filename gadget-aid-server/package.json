@@ -7,7 +7,8 @@
     "test": "node --test tests/*.test.cjs",
     "email:deliver": "node scripts/deliver-email.cjs",
     "reviews:moderate": "node scripts/moderate-review.cjs",
-    "test:mongo": "node --test tests/mongo.integration.cjs"
+    "test:mongo": "node --test tests/mongo.integration.cjs",
+    "admin:bootstrap": "node scripts/super-admin.cjs"
   },
   "keywords": [],
   "author": "",

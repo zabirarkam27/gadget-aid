@@ -7,7 +7,13 @@ const { randomUUID } = require("node:crypto");
 const { MongoClient } = require("mongodb");
 const { createDatabase } = require("../database");
 const { createApp } = require("../app");
-const { createFixture, users, ids, fixedTime } = require("./fixtures.cjs");
+const {
+  createFixture,
+  users,
+  ids,
+  fixedTime,
+  identityDirectory,
+} = require("./fixtures.cjs");
 const { defaultAvailability } = require("../technicians");
 const { moderateReview } = require("../reviews");
 test(
@@ -25,8 +31,10 @@ test(
     assert.equal(hello.isWritablePrimary, true);
     const databaseName = `gadgetaid_phase8_qa_${randomUUID().replaceAll("-", "")}`;
     const db = createDatabase(client, databaseName),
-      fixture = createFixture();
+      fixture = createFixture({ seedAdminRoles: true });
     await db.services.insertOne(fixture.service);
+    for (const grant of fixture.db.roleGrants.rows)
+      await db.roleGrants.insertOne(grant);
     let failMode = "";
     const app = createApp({
       getCollections: async () => ({
@@ -35,6 +43,15 @@ test(
           db.transaction((tx) =>
             work({
               ...tx,
+              auditLogs:
+                failMode === "audit"
+                  ? {
+                      ...tx.auditLogs,
+                      insertOne: async () => {
+                        throw new Error("Synthetic audit outage");
+                      },
+                    }
+                  : tx.auditLogs,
               bookings:
                 failMode === "insert"
                   ? {
@@ -56,13 +73,20 @@ test(
             }),
           ),
       }),
+      identityDirectory,
       clock: () => new Date(fixedTime),
       verifyIdToken: async (token) =>
-        users[token] || {
-          uid: `qa-${token}`,
-          email: `${token}@example.test`,
-          name: "Synthetic race customer",
-        },
+        users[token]
+          ? {
+              ...users[token],
+              email_verified: true,
+              auth_time: Math.floor(fixedTime.getTime() / 1000),
+            }
+          : {
+              uid: `qa-${token}`,
+              email: `${token}@example.test`,
+              name: "Synthetic race customer",
+            },
     });
     const server = app.listen(0, "127.0.0.1");
     await once(server, "listening");
@@ -261,8 +285,127 @@ test(
     );
     assert.equal(publicProfile.data.reviewCount, 0);
     assert.equal(publicProfile.data.averageRating, null);
+    const privileged = {
+      reason: "Review the isolated operational target and its audit state.",
+      confirmed: true,
+      expectedRevision: 0,
+    };
+    assert.equal(
+      (await request("GET", "/admin/overview", undefined, "admin")).status,
+      200,
+    );
+    failMode = "audit";
+    assert.equal(
+      (
+        await request(
+          "POST",
+          "/admin/accounts/qa-customer/state",
+          { ...privileged, state: "restricted" },
+          "admin",
+        )
+      ).status,
+      500,
+    );
+    assert.equal(
+      await db.accountControls.findOne({ _id: users.customer.uid }),
+      null,
+    );
+    assert.equal(
+      (
+        await request(
+          "POST",
+          `/admin/services/${ids.service}/publication`,
+          { ...privileged, state: "hidden" },
+          "admin",
+        )
+      ).status,
+      500,
+    );
+    assert.equal(
+      await db.entityControls.findOne({ _id: `service:${ids.service}` }),
+      null,
+    );
+    assert.equal(
+      (
+        await request(
+          "POST",
+          "/admin/roles/qa-second",
+          { ...privileged, role: "admin", active: true },
+          "superadmin",
+        )
+      ).status,
+      500,
+    );
+    assert.equal(await db.roleGrants.findOne({ _id: users.second.uid }), null);
+    const privateFailure = await request(
+      "POST",
+      `/admin/inspect/booking/${ids.booking}`,
+      { reason: privileged.reason, confirmed: true },
+      "admin",
+    );
+    assert.equal(privateFailure.status, 500);
+    assert.ok(
+      !JSON.stringify(privateFailure.data).includes(booking.instruction),
+    );
+    failMode = "";
+    assert.equal(
+      (
+        await request(
+          "POST",
+          "/admin/roles/qa-second",
+          { ...privileged, role: "admin", active: true },
+          "superadmin",
+        )
+      ).status,
+      200,
+    );
+    assert.equal(
+      (await request("GET", "/admin/overview", undefined, "second")).status,
+      200,
+    );
+    assert.equal(
+      (
+        await request(
+          "POST",
+          "/admin/roles/qa-second",
+          { ...privileged, expectedRevision: 1, role: "admin", active: false },
+          "superadmin",
+        )
+      ).status,
+      200,
+    );
+    assert.equal(
+      (await request("GET", "/admin/overview", undefined, "second")).status,
+      403,
+    );
+    assert.equal(
+      (
+        await request(
+          "POST",
+          `/admin/services/${ids.service}/publication`,
+          { ...privileged, state: "hidden" },
+          "admin",
+        )
+      ).status,
+      200,
+    );
+    assert.equal(
+      (
+        await request(
+          "POST",
+          "/bookings",
+          { ...input, date: "2026-11-09" },
+          "new-after-hide",
+        )
+      ).data.code,
+      "SERVICE_UNAVAILABLE",
+    );
+    assert.equal(
+      (await request("GET", "/admin/audit", undefined, "admin")).status,
+      200,
+    );
     t.diagnostic(
-      "12 competing reservations: exactly one committed; failed insert/cancellation rolled back; conflicting closure serialized; real moderation audit/report commit verified. All data is in a disposable local database.",
+      "12 competing reservations: exactly one committed; failed insert/cancellation rolled back; conflicting closure serialized; real moderation audit/report commit verified; admin audit failures rolled back grants/restrictions/visibility and private inspections failed closed; committed role revocation denied the next request. All data is in a disposable local database.",
     );
   },
 );

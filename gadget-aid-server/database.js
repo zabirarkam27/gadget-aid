@@ -6,6 +6,14 @@ const collectionNames = {
   technicians: "technicians",
   reviews: "reviews",
   reviewReports: "reviewReports",
+  roleGrants: "roleGrants",
+  accountControls: "accountControls",
+  entityControls: "entityControls",
+  auditLogs: "auditLogs",
+  applications: "technicianApplications",
+  disputes: "disputes",
+  categories: "categories",
+  operationMeta: "operationMeta",
 };
 const createDatabase = (client, databaseName = "gadgetAidDB") => {
   const bind = (session) =>
@@ -16,7 +24,12 @@ const createDatabase = (client, databaseName = "gadgetAidDB") => {
           key,
           session
             ? {
-                find: (query) => collection.find(query, { session }),
+                find: (query, options = {}) =>
+                  collection.find(query, { ...options, session }),
+                countDocuments: (query) =>
+                  collection.countDocuments(query, { session }),
+                updateMany: (query, update) =>
+                  collection.updateMany(query, update, { session }),
                 findOne: (query) => collection.findOne(query, { session }),
                 insertOne: (record) =>
                   collection.insertOne(record, { session }),

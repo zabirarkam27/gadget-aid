@@ -1,3 +1,7 @@
+import CapabilityGate from "../router/CapabilityGate";
+import AdminWorkspace from "../pages/AdminWorkspace";
+import AccountAccess from "../pages/AccountAccess";
+import MyDisputes from "../pages/MyDisputes";
 import TechnicianProfile from "../pages/TechnicianProfile";
 import TechnicianSettings from "../pages/TechnicianSettings";
 import Notifications from "../pages/Notifications";
@@ -24,10 +28,59 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <Error />,
     children: [
-      {path:"/technicians/:id",element:<TechnicianProfile />},
-      {path:"/my-technician",element:<PrivateRoutes><TechnicianSettings /></PrivateRoutes>},
-      {path:"/notifications",element:<PrivateRoutes><Notifications /></PrivateRoutes>},
-      {path:"/bookings/:id",element:<PrivateRoutes><RepairDetails /></PrivateRoutes>},
+      {
+        path: "/admin",
+        element: (
+          <PrivateRoutes>
+            <CapabilityGate admin>
+              <AdminWorkspace />
+            </CapabilityGate>
+          </PrivateRoutes>
+        ),
+      },
+      {
+        path: "/account-access",
+        element: (
+          <PrivateRoutes>
+            <AccountAccess />
+          </PrivateRoutes>
+        ),
+      },
+      {
+        path: "/my-disputes",
+        element: (
+          <PrivateRoutes>
+            <MyDisputes />
+          </PrivateRoutes>
+        ),
+      },
+      { path: "/technicians/:id", element: <TechnicianProfile /> },
+      {
+        path: "/my-technician",
+        element: (
+          <PrivateRoutes>
+            <CapabilityGate>
+              <TechnicianSettings />
+            </CapabilityGate>
+          </PrivateRoutes>
+        ),
+      },
+      {
+        path: "/notifications",
+        element: (
+          <PrivateRoutes>
+            <Notifications />
+          </PrivateRoutes>
+        ),
+      },
+      {
+        path: "/bookings/:id",
+        element: (
+          <PrivateRoutes>
+            <RepairDetails />
+          </PrivateRoutes>
+        ),
+      },
       { path: "/forgot-password", element: <ForgotPassword /> },
       {
         path: "/",
@@ -57,7 +110,9 @@ const router = createBrowserRouter([
         path: "/add-service",
         element: (
           <PrivateRoutes>
-            <AddService />
+            <CapabilityGate>
+              <AddService />
+            </CapabilityGate>
           </PrivateRoutes>
         ),
       },
