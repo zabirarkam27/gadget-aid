@@ -38,7 +38,7 @@ const DashboardLayout = ({
   return (
     <div className="ga-container ga-section">
       <Helmet>
-        <title>{title} | GadgetAid</title>
+        <title>{`${title} | GadgetAid`}</title>
       </Helmet>
       <div className="flex flex-wrap items-end justify-between gap-5 mb-8">
         <div>

@@ -11,7 +11,7 @@ export default function ToolLayout({ title, description, children }) {
   return (
     <section className="ga-container ga-section min-w-0">
       <Helmet>
-        <title>{title} | GadgetAid</title>
+        <title>{`${title} | GadgetAid`}</title>
       </Helmet>
       <p className="ga-eyebrow mb-3">Make an informed repair choice</p>
       <h1 className="text-page font-bold">{title}</h1>

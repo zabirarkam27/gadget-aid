@@ -109,7 +109,7 @@ const Profile = ({ id }) => {
     <div className="ga-container ga-section">
       <Helmet>
         <title>
-          {profile?.businessName || "Technician profile"} | GadgetAid
+          {`${profile?.businessName || "Technician profile"} | GadgetAid`}
         </title>
       </Helmet>
       <Button to="/services" variant="ghost">

@@ -141,7 +141,7 @@ const ServiceDetails = () => {
   return (
     <>
       <Helmet>
-        <title>{service?.name || "Service details"} | GadgetAid</title>
+        <title>{`${service?.name || "Service details"} | GadgetAid`}</title>
       </Helmet>
       <div className="ga-container ga-section">
         <Link
