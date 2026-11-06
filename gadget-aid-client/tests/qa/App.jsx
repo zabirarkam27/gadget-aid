@@ -1,6 +1,7 @@
 import CapabilityGate from "../../src/router/CapabilityGate";
 import DemoLogin from "./DemoLogin";
 import AccountSecurity from "../../src/pages/AccountSecurity";
+import Devices from "../../src/pages/Devices";
 import {
   createSecurityActions,
   passwordProblem,
@@ -43,6 +44,14 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     errorElement: <ErrorPage />,
     children: [
+      {
+        path: "devices",
+        element: protectedPage(<Devices key="device-list" />),
+      },
+      {
+        path: "devices/:id",
+        element: protectedPage(<Devices key="device-detail" />),
+      },
       { path: "account-security", element: protectedPage(<AccountSecurity />) },
       {
         path: "admin",

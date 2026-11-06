@@ -7,6 +7,22 @@ export const readJson = async (response) => {
       body = {};
     }
     const messages = {
+      STALE_PASSPORT:
+        "The device, linked repair or warranty changed. Refresh before saving again.",
+      DEVICE_LIMIT:
+        "You can keep up to 200 private devices. Export and remove an old device before adding another.",
+      EXPORT_LIMIT:
+        "This history exceeds the single-file export limit. Use its paginated repair history.",
+      HANDOVER_REQUIRED:
+        "Warranty terms require a recorded completed handover by the provider.",
+      WARRANTY_EXISTS:
+        "Provider warranty terms have already been issued and cannot be replaced.",
+      WARRANTY_EXPIRED:
+        "This warranty is outside its stated dates. Booking support remains available.",
+      CLAIM_EXISTS:
+        "This warranty already has a claim. Follow the existing claim history.",
+      INVALID_CLAIM_TRANSITION:
+        "This claim decision is not available from its current state. Refresh the warranty.",
       DUPLICATE_BOOKING:
         "You already have a booking for this service and date. Check My bookings.",
       INVALID_SERVICE_SNAPSHOT:

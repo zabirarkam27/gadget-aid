@@ -43,6 +43,24 @@ test(
           db.transaction((tx) =>
             work({
               ...tx,
+              devices:
+                failMode === "passport-delete"
+                  ? {
+                      ...tx.devices,
+                      deleteOne: async () => {
+                        throw Error("Synthetic device deletion failure");
+                      },
+                    }
+                  : tx.devices,
+              warranties:
+                failMode === "warranty-insert"
+                  ? {
+                      ...tx.warranties,
+                      insertOne: async () => {
+                        throw Error("Synthetic warranty insertion failure");
+                      },
+                    }
+                  : tx.warranties,
               auditLogs:
                 failMode === "audit"
                   ? {
@@ -403,6 +421,125 @@ test(
     assert.equal(
       (await request("GET", "/admin/audit", undefined, "admin")).status,
       200,
+    );
+    const passport = await request(
+      "POST",
+      "/devices",
+      {
+        label: "Local QA laptop",
+        type: "Laptop",
+        brand: "Demo",
+        model: "Integration",
+        serialNumber: "LOCAL-PRIVATE-SERIAL",
+        purchaseDate: null,
+      },
+      "customer",
+    );
+    assert.equal(passport.status, 201);
+    assert.equal(
+      (
+        await request(
+          "PUT",
+          `/bookings/${ids.booking}/device`,
+          { deviceId: passport.data._id, expectedDeviceId: null },
+          "customer",
+        )
+      ).status,
+      200,
+    );
+    failMode = "warranty-insert";
+    const warrantyTerms = {
+      durationDays: 30,
+      coverage: "Synthetic connector workmanship coverage only.",
+      exclusions: "Unrelated faults excluded.",
+      confirmed: true,
+      expectedRevision: 3,
+    };
+    assert.equal(
+      (
+        await request(
+          "POST",
+          `/bookings/${ids.booking}/warranty`,
+          warrantyTerms,
+          "provider",
+        )
+      ).status,
+      500,
+    );
+    assert.equal(
+      (await db.bookings.findOne({ _id: booking._id })).warrantyGuard,
+      undefined,
+    );
+    failMode = "";
+    assert.equal(
+      (
+        await request(
+          "POST",
+          `/bookings/${ids.booking}/warranty`,
+          warrantyTerms,
+          "provider",
+        )
+      ).status,
+      201,
+    );
+    const competingClaims = await Promise.all(
+      [1, 2].map(() =>
+        request(
+          "POST",
+          `/bookings/${ids.booking}/warranty/claims`,
+          {
+            description: "Synthetic warranty claim after connector failure.",
+            expectedRevision: 0,
+          },
+          "customer",
+        ),
+      ),
+    );
+    assert.equal(competingClaims.filter((r) => r.status === 201).length, 1);
+    assert.equal(competingClaims.filter((r) => r.status === 409).length, 1);
+    failMode = "passport-delete";
+    assert.equal(
+      (
+        await request(
+          "DELETE",
+          `/devices/${passport.data._id}`,
+          { confirmed: true, expectedRevision: 0 },
+          "customer",
+        )
+      ).status,
+      500,
+    );
+    assert.equal(
+      (await db.bookings.findOne({ _id: booking._id })).deviceId,
+      passport.data._id,
+    );
+    assert.ok(await db.devices.findOne({ ownerUid: users.customer.uid }));
+    failMode = "";
+    assert.equal(
+      (
+        await request(
+          "DELETE",
+          `/devices/${passport.data._id}`,
+          { confirmed: true, expectedRevision: 0 },
+          "customer",
+        )
+      ).status,
+      200,
+    );
+    assert.equal(
+      (await db.bookings.findOne({ _id: booking._id })).deviceId,
+      null,
+    );
+    assert.equal(
+      await db.devices.findOne({ ownerUid: users.customer.uid }),
+      null,
+    );
+    assert.equal(
+      await db.warranties.countDocuments({ bookingId: ids.booking }),
+      1,
+    );
+    t.diagnostic(
+      "Phase 10: failed warranty insertion and device deletion rolled back; concurrent claims committed exactly once; device erasure detached repair links while preserving provider warranty history.",
     );
     t.diagnostic(
       "12 competing reservations: exactly one committed; failed insert/cancellation rolled back; conflicting closure serialized; real moderation audit/report commit verified; admin audit failures rolled back grants/restrictions/visibility and private inspections failed closed; committed role revocation denied the next request. All data is in a disposable local database.",

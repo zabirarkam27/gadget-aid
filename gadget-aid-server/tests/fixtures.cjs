@@ -159,6 +159,12 @@ class MemoryCollection {
       modifiedCount: before === JSON.stringify(row) ? 0 : 1,
     };
   }
+  async deleteOne(query) {
+    const index = this.rows.findIndex((row) => matches(row, query));
+    if (index < 0) return { deletedCount: 0 };
+    this.rows.splice(index, 1);
+    return { deletedCount: 1 };
+  }
 }
 const serviceFields = {
   name: "Laptop diagnostic repair",
@@ -209,6 +215,8 @@ const createFixture = ({
     createdAt: fixedTime,
   };
   const db = {
+    devices: new MemoryCollection(),
+    warranties: new MemoryCollection(),
     roleGrants: new MemoryCollection(),
     accountControls: new MemoryCollection(),
     entityControls: new MemoryCollection(),

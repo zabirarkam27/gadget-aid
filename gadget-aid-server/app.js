@@ -1,4 +1,5 @@
 const { serviceCategory } = require("./categories");
+const { createPassports } = require("./passports");
 const { accessFor, requireProvider, visibleServices } = require("./access");
 const { createOperations } = require("./operations");
 const { createDisputes } = require("./disputes");
@@ -55,6 +56,7 @@ const createApp = ({
     }
   };
   const authenticated = async (req, res, next) => {
+    res.set("Cache-Control", "no-store");
     const match = /^Bearer (\S+)$/.exec(req.headers.authorization || "");
     if (!match)
       return res
@@ -96,6 +98,9 @@ const createApp = ({
         req.method === "GET" ||
         req.method === "HEAD" ||
         req.path === "/notifications/read" ||
+        (req.method === "DELETE" &&
+          /^\/devices\/[a-f0-9]{24}$/.test(req.path)) ||
+        /^\/bookings\/[a-f0-9]{24}\/warranty\/claims$/.test(req.path) ||
         /^\/bookings\/[a-f0-9]{24}\/(cancel|disputes|messages\/read)$/.test(
           req.path,
         );
@@ -495,6 +500,33 @@ const createApp = ({
     identityDirectory,
   });
   app.get("/my-capabilities", authenticated, operations.capabilities);
+  app.use("/devices", (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    next();
+  });
+  const passports = createPassports({ collections, clock });
+  app.get("/devices", authenticated, passports.list);
+  app.post("/devices", authenticated, passports.create);
+  app.get("/devices/:id", authenticated, passports.read);
+  app.put("/devices/:id", authenticated, passports.update);
+  app.delete("/devices/:id", authenticated, passports.remove);
+  app.get("/devices/:id/history", authenticated, passports.history);
+  app.get("/devices/:id/export", authenticated, passports.exportData);
+  app.get("/bookings/:id/passport", authenticated, passports.bookingRead);
+  app.put("/bookings/:id/device", authenticated, passports.link);
+  app.post(
+    "/bookings/:id/warranty",
+    authenticated,
+    requireProvider,
+    passports.issue,
+  );
+  app.post("/bookings/:id/warranty/claims", authenticated, passports.claim);
+  app.post(
+    "/bookings/:id/warranty/decision",
+    authenticated,
+    requireProvider,
+    passports.decide,
+  );
   app.post("/technician-application", authenticated, operations.apply);
   app.use("/admin", authenticated, operations.guard);
   app.get("/admin/overview", operations.overview);

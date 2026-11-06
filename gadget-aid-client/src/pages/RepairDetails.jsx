@@ -1,4 +1,5 @@
 import BookingDisputes from "../components/dashboard/BookingDisputes";
+import BookingPassport from "../components/dashboard/BookingPassport";
 import BookingReview from "../components/dashboard/BookingReview";
 import BookingConversation from "../components/dashboard/BookingConversation";
 import { useEffect, useRef, useState } from "react";
@@ -611,6 +612,7 @@ const RepairWorkspace = ({ id }) => {
                 <BookingConversation bookingId={id} />
                 <BookingReview bookingId={id} status={booking.status} />
                 <BookingDisputes bookingId={id} />
+                <BookingPassport bookingId={id} status={booking.status} />
                 <Panel title="Repair timeline">
                   {!booking.repair.events.length ? (
                     <p className="ga-muted">

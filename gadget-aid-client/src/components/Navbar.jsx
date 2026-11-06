@@ -21,6 +21,7 @@ const publicLinks = [
   ["/contact-us", "Contact"],
 ];
 const accountLinks = [
+  ["/devices", "My devices"],
   ["/account-security", "Account security"],
   ["/account-access", "Account access"],
   ["/my-disputes", "My support requests"],

@@ -188,3 +188,23 @@ The approved role model and production onboarding requirements are documented in
 All admin POSTs require a specific 10–1,000 character `reason`, `confirmed:true` and signed Firebase `auth_time` within 10 minutes. Mutations also require integer `expectedRevision` (zero for absent controls/new categories). Stale state returns 409; no automatic replay. Reasons on applications/publication are shared with the affected provider/applicant. Private inspections use POST to require an accountable reason before data is returned; they do not require a mutation revision. State and minimal audit entries share one transaction. Failure returns a safe error and no private details or partial state.
 
 Common additional codes: `ADMIN_REQUIRED`, `TECHNICIAN_REQUIRED`, `ADMIN_REAUTH_REQUIRED`, `CONFIRMATION_REQUIRED`, `ACCOUNT_RESTRICTED`, `ACCOUNT_NOT_VERIFIED`, `APPLICATION_REQUIRED`, `STALE_OPERATION`, `INVALID_CURSOR`, `CATEGORY_UNAVAILABLE`, `DISPUTE_EXISTS`. Admin requests perform Firebase revocation checking plus current server-grant validation. UI role flags never authorize API access.
+# Phase 10 passport and warranty extension
+
+Every endpoint below requires a verified Firebase identity token with revocation checks. Device ownership is enforced by Firebase UID; Admin has no passport override. Lists omit serials, private responses use `Cache-Control: no-store`, and caller-supplied ownership/upload/verification fields are rejected.
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET /devices` | Own devices; `limit` 1–100, filter-scoped `cursor`, optional literal `q` on label/type/brand/model; `{items,nextCursor,limit}`. |
+| `POST /devices` | `label` (2–100), `type` (2–60), `brand` (0–80), `model` (0–120), `serialNumber` (0–160), `purchaseDate` (optional valid nonfuture date/null); max 200 owned devices. |
+| `GET /devices/:id` | Owner-only full device; nonexistent/other-owner ID returns 404. |
+| `PUT /devices/:id` | Same device fields plus integer `expectedRevision`; stale writes fail 409. |
+| `GET /devices/:id/history` | Owner-only paginated own linked repair summaries and provider warranty/claim records. |
+| `GET /devices/:id/export` | Owner-only private JSON attachment, up to 1,000 linked repair summaries. Larger exports explicitly fail with `EXPORT_LIMIT`. |
+| `DELETE /devices/:id` | `confirmed:true`, `expectedRevision`; atomically erase the device and detach booking references; preserve independent booking/warranty records. |
+| `GET /bookings/:id/passport` | Actual participants only; customer gets own linked device summary (no serial), both get provider warranty/claim history and server-derived action capabilities. |
+| `PUT /bookings/:id/device` | Customer only; `deviceId` or null and `expectedDeviceId` or null. Target device must belong to caller. Canonical IDs stored. |
+| `POST /bookings/:id/warranty` | Canonical approved provider after recorded completed handover; `durationDays` 1–730, `coverage`, `exclusions`, `confirmed:true`, `expectedRevision` of repair. One permanent record per booking. |
+| `POST /bookings/:id/warranty/claims` | Actual customer, within warranty dates; `description`, warranty `expectedRevision`; one claim thread per warranty. |
+| `POST /bookings/:id/warranty/decision` | Original canonical provider; `state`, `note` (10–2,000), `confirmed:true`, warranty `expectedRevision`; only allowed forward transitions. |
+
+Warranty dates derive from the server-recorded provider handover in Bangladesh time; date eligibility never implies claim approval. Additional codes: `STALE_PASSPORT`, `DEVICE_LIMIT`, `EXPORT_LIMIT`, `HANDOVER_REQUIRED`, `WARRANTY_EXISTS`, `WARRANTY_EXPIRED`, `CLAIM_EXISTS`, `INVALID_CLAIM_TRANSITION`. Details/retention/limits are in [Phase 10 validation](PHASE_10_VALIDATION.md). There is no upload, public passport or manufacturer-warranty endpoint.
