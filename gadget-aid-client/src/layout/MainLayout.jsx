@@ -30,7 +30,7 @@ const MainLayout = () => (
           <Navbar />
           <RestrictionNotice />
           <main id="main-content" tabIndex={-1} className="flex-1 min-w-0">
-            <Suspense fallback={<div className="ga-container ga-section" role="status">Loading page…</div>}><Outlet /></Suspense>
+            <Suspense fallback={<div className="ga-container ga-section" role="status">Loading page...</div>}><Outlet /></Suspense>
           </main>
           <Footer />
         </div>
