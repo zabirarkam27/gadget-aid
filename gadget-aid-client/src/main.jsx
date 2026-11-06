@@ -5,18 +5,15 @@ import { RouterProvider } from "react-router-dom";
 import router from './router/router.jsx';
 import AuthProvider from './provider/AuthProvider.jsx';
 import { ToastContainer } from 'react-toastify';
-import { MotionConfig } from 'framer-motion';
 import { initializeTheme } from './utils/theme';
 
 initializeTheme();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <MotionConfig reducedMotion="user">
       <AuthProvider>
         <ToastContainer />
         <RouterProvider router={router} />
       </AuthProvider>
-    </MotionConfig>
   </StrictMode>
 );

@@ -169,6 +169,30 @@ test(
           : await r.json(),
       };
     };
+    // Exercise actual Mongo aggregation semantics, not just the memory fixture.
+    for (let i = 0; i < 16; i++) await db.services.insertOne({ ...fixture.service, _id: new (require("mongodb").ObjectId)(), name: `Pagination QA ${i}`, price: i % 2 ? "9.50" : 100, createdAt: new Date(+fixedTime + i * 1000) });
+    const listed = await request("GET", "/services?paged=1&limit=3&sort=low&q=Pagination");
+    assert.equal(listed.status, 200);
+    assert.deepEqual(listed.data.items.map(s => s.price), [9.5, 9.5, 9.5]);
+    const listedNext = await request("GET", `/services?paged=1&limit=3&sort=low&q=Pagination&cursor=${listed.data.nextCursor}`);
+    assert.equal(listedNext.status, 200);
+    assert.equal(new Set([...listed.data.items, ...listedNext.data.items].map(s => s._id)).size, 6);
+    const newest = await request("GET", "/services?paged=1&limit=1&sort=newest&q=Pagination");
+    assert.equal(newest.data.items[0].name, "Pagination QA 15");
+    const free = await request("GET", "/services?paged=1&maxPrice=0");
+    assert.equal(free.data.items.length, 0);
+    await db.services.insertOne({ ...fixture.service, _id: new (require("mongodb").ObjectId)(), name: "Pagination QA fractional", price: "1.234" });
+    assert.equal((await request("GET", "/services?paged=1&q=Pagination&maxPrice=2")).data.items.length, 0);
+    const privatePage = await request("GET", "/bookings?paged=1", undefined, "customer");
+    assert.equal(privatePage.status, 200);
+    assert.deepEqual(privatePage.data.summary.map(c => c.value), [0, 0, 0]);
+    await db.bookings.insertOne({ ...fixture.booking, _id: new (require("mongodb").ObjectId)(), serviceName: "Pagination booking", status: "working" });
+    const workingPage = await request("GET", "/bookings?paged=1&status=repairing", undefined, "customer");
+    assert.equal(workingPage.status, 200);
+    assert.equal(workingPage.data.items.length, 1);
+    assert.deepEqual(workingPage.data.summary.map(c => c.value), [0, 1, 0]);
+    await db.bookings.deleteMany({ serviceName: "Pagination booking" });
+    await db.services.deleteMany({ name: /^Pagination QA / });
     const a = defaultAvailability();
     const body = {
       businessName: "Local integration repairs",

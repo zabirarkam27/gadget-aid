@@ -41,6 +41,9 @@ const ServiceDetails = () => {
   const [availability, setAvailability] = useState(null);
   const [slotAttempt, setSlotAttempt] = useState(0);
   const [instruction, setInstruction] = useState("");
+  const [deviceType, setDeviceType] = useState("");
+  const [deviceBrand, setDeviceBrand] = useState("");
+  const [deviceModel, setDeviceModel] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState("");
   const bookingLock = useRef(false);
@@ -90,6 +93,10 @@ const ServiceDetails = () => {
       return;
     }
     const service = state.service;
+    if ([deviceType, deviceBrand, deviceModel].some(value => !value.trim() || value.trim().length > 80) || instruction.trim().length < 10) {
+      setBookingError("Add device type, brand, model and a problem description of at least 10 characters.");
+      return;
+    }
     bookingLock.current = true;
     setSubmitting(true);
     setBookingError("");
@@ -101,6 +108,9 @@ const ServiceDetails = () => {
           serviceId: service._id,
           date,
           instruction: instruction.trim(),
+          deviceType: deviceType.trim(),
+          deviceBrand: deviceBrand.trim(),
+          deviceModel: deviceModel.trim(),
           ...(time ? { time } : {}),
         }),
       }).then(readJson);
@@ -294,11 +304,21 @@ const ServiceDetails = () => {
                   as="textarea"
                   rows={4}
                   maxLength={2000}
+                  minLength={10}
+                  required
                   placeholder="Describe the device, issue and any useful instructions."
                   value={instruction}
                   onChange={(event) => setInstruction(event.target.value)}
                   disabled={submitting}
                 />
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <FormField label="Device type" as="select" required value={deviceType} onChange={e => setDeviceType(e.target.value)} disabled={submitting}>
+                    <option value="">Choose a device</option>
+                    {["Smartphone", "Laptop", "Desktop", "Tablet", "Smartwatch", "Gaming console", "Other"].map(type => <option key={type}>{type}</option>)}
+                  </FormField>
+                  <FormField label="Device brand" required maxLength={80} value={deviceBrand} onChange={e => setDeviceBrand(e.target.value)} disabled={submitting} placeholder="For example, Samsung" />
+                  <FormField label="Device model" required maxLength={80} value={deviceModel} onChange={e => setDeviceModel(e.target.value)} disabled={submitting} placeholder="Model name or unknown" />
+                </div>
                 {bookingError && (
                   <p role="alert" className="text-error text-sm">
                     {bookingError}

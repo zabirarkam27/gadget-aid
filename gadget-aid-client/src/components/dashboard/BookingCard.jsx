@@ -24,6 +24,7 @@ const BookingCard = ({ booking, provider = false, action }) => {
           {booking.serviceName || "Repair service"}
         </h2>
         <div className="text-sm ga-muted space-y-2">
+          {booking.deviceType && <p className="break-words">{[booking.deviceType, booking.deviceBrand, booking.deviceModel].filter(Boolean).join(" · ")}</p>}
           <p className="break-words">
             {provider ? "Customer" : "Provider"}:{" "}
             {provider

@@ -1,4 +1,5 @@
 const { serviceCategory } = require("./categories");
+const { listPage, catalogueFilter, input: listInput, search: listSearch } = require("./listings");
 const { createPassports } = require("./passports");
 const { createReceipts, MAX_BYTES } = require("./receipts");
 const { accessFor, requireProvider, visibleServices } = require("./access");
@@ -127,11 +128,15 @@ const createApp = ({
 
   app.get("/services", async (req, res) => {
     const db = await collections();
+    if (req.query.paged === "1") {
+      const page = await listPage({ collection: db.services, filter: catalogueFilter(req.query), query: req.query, scope: "catalogue", price: true, visible: (rows) => visibleServices(db, rows) });
+      return res.json({ ...page, items: page.items.map(serializeService) });
+    }
     res.json(
       (
         await visibleServices(
           db,
-          await db.services.find({ deletedAt: null }).toArray(),
+          await db.services.find({ deletedAt: null }).limit(100).toArray(),
         )
       ).map(serializeService),
     );
@@ -146,9 +151,17 @@ const createApp = ({
   });
   app.get("/my-services", authenticated, async (req, res) => {
     const db = await collections();
+    if (req.query.paged === "1") {
+      listInput(req.query, ["paged", "limit", "cursor", "q", "area"]);
+      const filter = { $and: [ownerQuery(req.user), { deletedAt: null }, listSearch(req.query.q, ["name"]), ...(req.query.area ? [listSearch(req.query.area, ["area"])] : [])] };
+      const page = await listPage({ collection: db.services, filter, query: req.query, scope: `services:${req.user.uid}` });
+      const controls = new Map((await db.entityControls.find({ _id: { $in: page.items.map(s => `service:${s._id}`) } }).toArray()).map(row => [row._id, row]));
+      return res.json({ ...page, items: page.items.map(service => ({ ...serializeService(service), publication: { state: controls.get(`service:${service._id}`)?.state || "visible", note: controls.get(`service:${service._id}`)?.publicNote || "" } })) });
+    }
     const owned = (
       await db.services
         .find({ ...ownerQuery(req.user), deletedAt: null })
+        .sort({ _id: -1 }).limit(100)
         .toArray()
     ).filter((service) => serviceOwner(service, req.user));
     const controls = new Map(
@@ -272,7 +285,19 @@ const createApp = ({
       "userName",
       "userEmail",
       "time",
+      "deviceType",
+      "deviceBrand",
+      "deviceModel",
     ]);
+    const deviceDetails = {};
+    for (const field of ["deviceType", "deviceBrand", "deviceModel"]) {
+      const value = req.body[field];
+      if (value !== undefined && (typeof value !== "string" || !value.trim() || value.trim().length > 80))
+        fail(400, "Device details must be 1–80 characters.", "VALIDATION_ERROR", { [field]: "Use 1–80 characters." });
+      if (value !== undefined) deviceDetails[field] = value.trim();
+    }
+    if (Object.keys(deviceDetails).length && (Object.keys(deviceDetails).length !== 3 || typeof req.body.instruction !== "string" || req.body.instruction.trim().length < 10))
+      fail(400, "Add device type, brand, model and at least 10 characters describing the problem.", "VALIDATION_ERROR");
     const id = idValue(req.body.serviceId);
     if (!validDate(req.body.date) || req.body.date < todayInDhaka(clock()))
       fail(
@@ -367,6 +392,7 @@ const createApp = ({
       userName: req.user.name,
       date,
       instruction: (req.body.instruction || "").trim(),
+      ...deviceDetails,
       price: canonical.price,
       status: "pending",
       createdAt: clock(),
@@ -405,20 +431,40 @@ const createApp = ({
   });
   app.get("/bookings", authenticated, async (req, res) => {
     const { bookings } = await collections();
+    if (req.query.paged === "1") return bookingPage(req, res, bookings, customerQuery(req.user), ["serviceName", "providerName"]);
     res.json(
-      (await bookings.find(customerQuery(req.user)).toArray()).map(
+      (await bookings.find(customerQuery(req.user)).sort({ _id: -1 }).limit(100).toArray()).map(
         serializeBooking,
       ),
     );
   });
+  async function bookingPage(req, res, bookings, ownership, fields) {
+    listInput(req.query, ["paged", "limit", "cursor", "q", "status"]);
+    const { STATUSES } = require("./workflow-model");
+    if (req.query.status && ![...STATUSES, "unknown"].includes(req.query.status)) fail(400, "Choose a valid repair status.", "VALIDATION_ERROR");
+    const prefix = [{ $match: ownership },
+      { $set: { listRawStatus: { $cond: [{ $in: [{ $ifNull: ["$status", ""] }, [""]] }, { $ifNull: ["$serviceStatus", "pending"] }, "$status"] } } },
+      { $set: { listStatus: { $cond: [{ $eq: ["$listRawStatus", "working"] }, "repairing", { $toLower: { $convert: { input: "$listRawStatus", to: "string", onError: "unknown", onNull: "pending" } } }] } } },
+    ];
+    const filter = { ...listSearch(req.query.q, fields), ...(req.query.status ? { listStatus: req.query.status } : {}) };
+    const page = await listPage({ collection: bookings, filter, query: req.query, prefix, scope: `bookings:${req.path}:${req.user.uid}` });
+    const groups = await bookings.aggregate([...prefix, { $group: { _id: "$listStatus", count: { $sum: 1 } } }], { maxTimeMS: 5000 }).toArray();
+    const count = (states) => groups.filter(g => states.includes(g._id)).reduce((sum, g) => sum + g.count, 0);
+    res.json({ ...page, items: page.items.map(serializeBooking), summary: [
+      { label: "Open requests", value: count(["pending", "confirmed", "device_received", "diagnosing", "quotation_sent", "awaiting_approval", "approved"]) },
+      { label: "In progress", value: count(["repairing", "quality_check", "ready_for_collection"]) },
+      { label: "Completed", value: count(["completed"]) },
+    ] });
+  }
   app.get("/all-bookings", authenticated, async (req, res) => {
     const { services, bookings } = await collections();
-    const owned = (await services.find(ownerQuery(req.user)).toArray()).filter(
+    const owned = (await services.find(ownerQuery(req.user), { projection: { _id: 1, providerUid: 1, providerEmail: 1 } }).toArray()).filter(
       (service) => serviceOwner(service, req.user),
     );
     const ids = owned.flatMap((service) => [service._id, String(service._id)]);
+    if (req.query.paged === "1") return bookingPage(req, res, bookings, { serviceId: { $in: ids } }, ["serviceName", "userEmail", "userName"]);
     res.json(
-      (await bookings.find({ serviceId: { $in: ids } }).toArray()).map(
+      (await bookings.find({ serviceId: { $in: ids } }).sort({ _id: -1 }).limit(100).toArray()).map(
         serializeBooking,
       ),
     );

@@ -1,0 +1,29 @@
+name: Deliver booking emails
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '2-59/5 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: booking-email
+  cancel-in-progress: false
+jobs:
+  deliver:
+    if: github.ref == 'refs/heads/main' && vars.BOOKING_EMAIL_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --omit=dev
+        working-directory: gadget-aid-server
+      - run: npm run email:deliver
+        working-directory: gadget-aid-server
+        env:
+          CRON_SECRET: ${{ secrets.BOOKING_EMAIL_CRON_SECRET }}
+          EMAIL_JOB_URL: https://gadget-aid-server.vercel.app/internal/jobs/email

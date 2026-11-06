@@ -1,8 +1,7 @@
+import LoadMore from "../components/ui/LoadMore";
 import { useState } from "react";
 import usePrivateCollection from "../hooks/usePrivateCollection";
 import {
-  bookingStatus,
-  statusCounts,
   repairStatuses,
 } from "../utils/workspace";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
@@ -13,16 +12,11 @@ import Button from "../components/Button";
 import FormField from "../components/ui/FormField";
 import EmptyState from "../components/ui/EmptyState";
 const ServiceToDo = () => {
-  const { data, loading, error, retry } = usePrivateCollection("/all-bookings");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
-  const results = data.filter(
-    (booking) =>
-      (!status || bookingStatus(booking) === status) &&
-      `${booking.serviceName || ""} ${booking.userEmail || ""}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-  );
+  const page = usePrivateCollection("/all-bookings", new URLSearchParams({ q: query, status }).toString());
+  const { data, loading, error, retry } = page;
+  const results = data;
   return (
     <DashboardLayout
       title="Work queue"
@@ -34,7 +28,7 @@ const ServiceToDo = () => {
         </Button>
       }
     >
-      {!loading && !error && <SummaryCards items={statusCounts(data)} />}
+      {!loading && !error && <SummaryCards items={page.summary || []} />}
       <div className="grid sm:grid-cols-[1fr_14rem] gap-4 mb-6">
         <FormField
           label="Search repair requests"
@@ -91,6 +85,7 @@ const ServiceToDo = () => {
           />
         )}
       </CollectionState>
+      {!loading && !error && <LoadMore page={page} label="Load more bookings" />}
     </DashboardLayout>
   );
 };

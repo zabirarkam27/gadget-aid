@@ -1,3 +1,4 @@
+import LoadMore from "../components/ui/LoadMore";
 import { useState } from "react";
 import usePrivateCollection from "../hooks/usePrivateCollection";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
@@ -8,21 +9,14 @@ import Button from "../components/Button";
 import FormField from "../components/ui/FormField";
 import EmptyState from "../components/ui/EmptyState";
 import {
-  bookingStatus,
-  statusCounts,
   repairStatuses,
 } from "../utils/workspace";
 const BookedServices = () => {
-  const { data, loading, error, retry } = usePrivateCollection("/bookings");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
-  const results = data.filter(
-    (booking) =>
-      (!status || bookingStatus(booking) === status) &&
-      `${booking.serviceName || ""} ${booking.providerName || ""}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-  );
+  const page = usePrivateCollection("/bookings", new URLSearchParams({ q: query, status }).toString());
+  const { data, loading, error, retry } = page;
+  const results = data;
   return (
     <DashboardLayout
       title="My bookings"
@@ -30,7 +24,7 @@ const BookedServices = () => {
       description="Your repair requests, provider details and latest updates in one place."
       action={<Button to="/services">Find a repair service ↗</Button>}
     >
-      {!loading && !error && <SummaryCards items={statusCounts(data)} />}
+      {!loading && !error && <SummaryCards items={page.summary || []} />}
       <div className="flex flex-wrap items-end gap-4 mb-6">
         <div className="flex-1 min-w-0 sm:min-w-64">
           <FormField
@@ -101,6 +95,7 @@ const BookedServices = () => {
           />
         )}
       </CollectionState>
+      {!loading && !error && <LoadMore page={page} label="Load more bookings" />}
     </DashboardLayout>
   );
 };

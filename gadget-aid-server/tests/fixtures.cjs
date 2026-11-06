@@ -64,6 +64,17 @@ const matches = (row, query) =>
       !(value instanceof ObjectId) &&
       !(value instanceof Date)
     ) {
+      if (["$gt", "$gte", "$lte", "$ne"].some(op => op in value))
+        return Object.entries(value).every(([op, expected]) => {
+          const actual = row[key] instanceof ObjectId ? String(row[key]) : row[key];
+          expected = expected instanceof ObjectId ? String(expected) : expected;
+          if (op === "$gt") return actual != null && actual > expected;
+          if (op === "$gte") return actual != null && actual >= expected;
+          if (op === "$lt") return actual != null && actual < expected;
+          if (op === "$lte") return actual != null && actual <= expected;
+          if (op === "$ne") return !equal(row[key], expected);
+          throw Error(`Unsupported comparison ${op}`);
+        });
       if ("$lt" in value)
         return (
           row[key] != null &&
@@ -82,6 +93,61 @@ const matches = (row, query) =>
 class MemoryCollection {
   constructor(rows = []) {
     this.rows = clone(rows);
+  }
+  aggregate(pipeline) {
+    // Test-only evaluator; real MongoDB integration tests verify these stages too.
+    const evaluate = (value, row) => {
+      if (typeof value === "string" && value.startsWith("$")) return row[value.slice(1)];
+      if (Array.isArray(value)) return value.map(v => evaluate(v, row));
+      if (!value || typeof value !== "object") return value;
+      const [op, arg] = Object.entries(value)[0];
+      if (op === "$convert") {
+        const input = evaluate(arg.input, row);
+        if (input == null) return arg.onNull;
+        try {
+          if (arg.to === "date") {
+            const result = input instanceof ObjectId ? input.getTimestamp() : new Date(input);
+            if (!Number.isFinite(+result)) throw Error();
+            return result;
+          }
+          if (arg.to === "string") { if (typeof input === "object" && !(input instanceof ObjectId)) throw Error(); return String(input); }
+          if (typeof input === "string" && !input.trim()) throw Error();
+          const result = Number(input);
+          if (!Number.isFinite(result)) throw Error();
+          return result;
+        } catch { return arg.onError; }
+      }
+      const values = evaluate(arg, row);
+      if (op === "$type") return typeof values === "number" ? "double" : typeof values;
+      if (op === "$multiply") return values[0] == null ? null : values[0] * values[1];
+      if (op === "$subtract") return values[0] == null ? null : values[0] - values[1];
+      if (op === "$abs") return values == null ? null : Math.abs(values);
+      if (op === "$round") return values[0] == null ? null : Math.round(values[0] * 10 ** values[1]) / 10 ** values[1];
+      if (op === "$ifNull") return values[0] == null ? values[1] : values[0];
+      if (op === "$eq") return values[0] == values[1];
+      if (op === "$and") return values.every(Boolean);
+      if (op === "$gte") return values[0] != null && values[0] >= values[1];
+      if (op === "$lte") return values[0] != null && values[0] <= values[1];
+      if (op === "$in") return values[1].includes(values[0]);
+      if (op === "$cond") return values[0] ? values[1] : values[2];
+      if (op === "$toLower") return values.toLowerCase();
+      throw Error(`Unsupported aggregate expression ${op}`);
+    };
+    return { toArray: async () => {
+      let rows = clone(this.rows);
+      for (const stage of pipeline) {
+        if (stage.$match) rows = rows.filter(row => matches(row, stage.$match));
+        else if (stage.$set) rows = rows.map(row => ({ ...row, ...Object.fromEntries(Object.entries(stage.$set).map(([key, expr]) => [key, evaluate(expr, row)])) }));
+        else if (stage.$sort) rows = await new MemoryCollection(rows).find().sort(stage.$sort).toArray();
+        else if (stage.$limit) rows = rows.slice(0, stage.$limit);
+        else if (stage.$group) {
+          const groups = new Map();
+          for (const row of rows) { const key = evaluate(stage.$group._id, row); groups.set(key, (groups.get(key) || 0) + 1); }
+          rows = [...groups].map(([_id, count]) => ({ _id, count }));
+        } else throw Error("Unsupported aggregate stage");
+      }
+      return rows;
+    } };
   }
   find(query = {}, options = {}) {
     let sort = null,

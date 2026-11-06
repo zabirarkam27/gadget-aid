@@ -1,13 +1,13 @@
 # Email delivery setup and recovery
 
-Phase 7 includes an optional Resend adapter and a durable, protected delivery job. In-app notifications and messages work without email credentials. Actual email delivery is **not enabled** in the checked local environment: RESEND_API_KEY, EMAIL_FROM, APP_URL and CRON_SECRET are absent. No production email was sent or production scheduler created during this task.
+Phase 7 includes a Resend adapter and a durable, protected delivery job. In-app notifications and messages work without email credentials. **Live booking email remains blocked:** on 6 November 2026 the owner confirmed there is no Resend account or verified sending domain. Production has APP_URL, but no RESEND_API_KEY, EMAIL_FROM or CRON_SECRET. Firebase authentication/reset emails are separate and do not enable this booking outbox. No real booking email was sent as a test.
 
 ## Configure on the backend
 
 1. Configure a Resend account and verified sending domain. Put RESEND_API_KEY and EMAIL_FROM in the **server** environment. Never commit them or use VITE-prefixed secrets.
 2. Set APP_URL to the frontend origin, such as `https://gadget-aid.web.app`, without a path, query or embedded credentials. Production email links require HTTPS. This is the URL users open to authenticate and view their booking.
 3. Set CRON_SECRET to at least 32 random characters. All four settings are required to enable the server entry's email sender; missing configuration never pretends delivery succeeded.
-4. Deploy matching frontend/backend when ready. This task only commits/pushes code; it does not deploy hosting or activate email.
+4. Run `npm run email:check` in the server directory. It reports only whether settings exist and are valid, never their values. Passing this check does not establish DNS verification, provider acceptance or inbox delivery. Deploy the backend with the same settings.
 5. Configure a trusted external scheduler to GET `/internal/jobs/email` on the backend with the header `Authorization: Bearer <CRON_SECRET>`, for example every minute. Configure the hosting function and scheduler timeouts for a batch of up to 5 provider calls (each bounded at 15 seconds), plus database reconciliation. No public user/admin action starts the job. Do not put the secret in a query string.
 
 A local/manual runner is available from the server directory:
@@ -18,7 +18,9 @@ npm run email:deliver
 
 It reads CRON_SECRET and optional EMAIL_JOB_URL from the server environment. The default job URL is `http://localhost:5000/internal/jobs/email`. Remote URLs must use HTTPS; redirects are rejected. The runner prints aggregate counts only, never recipients, payloads or credentials. Do not run it against real queued recipients as a test. Browser QA and automated tests use memory records, fake identities and a fake sender.
 
-No automatic Vercel cron schedule or paid resource is provisioned here. The application exposes the protected job so the scheduler can be configured for the actual hosting account. Email preferences remain a later phase.
+The repository now includes `.github/workflows/booking-email.yml`, a five-minute GitHub Actions schedule and manual dispatch. It is deliberately inactive until repository variable `BOOKING_EMAIL_ENABLED=true` is set on main. To activate after provider/DNS verification, store the **same** backend CRON_SECRET as GitHub Actions secret `BOOKING_EMAIL_CRON_SECRET`, review the pending historical outbox, then enable the variable. The runner has no Resend key; it invokes only the fixed HTTPS backend job and prints aggregate counts. The workflow has read-only repository permissions, no persisted checkout credential, one concurrent job and a three-minute timeout. GitHub scheduling is best-effort and can be delayed; it is not an exact delivery-time guarantee. No variable, secret, paid resource or live scheduler was activated in this follow-up. Email preferences remain a later phase.
+
+A domain you own and its DNS access are required for general Resend sending; the shared Firebase `web.app` domain cannot be verified as your own mail domain. See [Resend domain requirements](https://resend.com/docs/dashboard/domains/introduction) and [GitHub scheduling limits](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
 
 ## Data, failures and duplicates
 

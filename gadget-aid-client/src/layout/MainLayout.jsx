@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { Suspense, useContext } from "react";
 import AccessProvider from "../provider/AccessProvider";
 import { AccessContext } from "../provider/AccessContext";
 import NotificationsProvider from "../provider/NotificationsProvider";
@@ -30,7 +30,7 @@ const MainLayout = () => (
           <Navbar />
           <RestrictionNotice />
           <main id="main-content" tabIndex={-1} className="flex-1 min-w-0">
-            <Outlet />
+            <Suspense fallback={<div className="ga-container ga-section" role="status">Loading page…</div>}><Outlet /></Suspense>
           </main>
           <Footer />
         </div>

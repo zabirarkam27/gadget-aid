@@ -185,6 +185,7 @@ const RepairWorkspace = ({ id }) => {
                   : `Provider: ${booking.providerName}`}
               </p>
               <p className="whitespace-pre-wrap break-words">
+                {booking.deviceType && <span className="block font-semibold mb-2">{[booking.deviceType, booking.deviceBrand, booking.deviceModel].filter(Boolean).join(" · ")}</span>}
                 {booking.instruction || "No additional instructions."}
               </p>
               <p className="text-sm ga-muted">

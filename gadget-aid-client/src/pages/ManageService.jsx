@@ -1,3 +1,4 @@
+import LoadMore from "../components/ui/LoadMore";
 import { AccessContext } from "../provider/AccessContext";
 import { useContext, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -17,10 +18,10 @@ import Button from "../components/Button";
 import { priceLabel } from "../utils/workspace";
 const ManageService = () => {
   const access = useContext(AccessContext);
-  const { data, loading, error, retry, setData } =
-    usePrivateCollection("/my-services");
   const [query, setQuery] = useState(""),
     [area, setArea] = useState("");
+  const page = usePrivateCollection("/my-services", new URLSearchParams({ q: query, area }).toString());
+  const { data, loading, error, retry, setData } = page;
   const [editing, setEditing] = useState(null),
     [deleting, setDeleting] = useState(null);
   const [saving, setSaving] = useState(false),
@@ -29,13 +30,7 @@ const ManageService = () => {
   const areas = [
     ...new Set(data.map((service) => service.area).filter(Boolean)),
   ].sort();
-  const results = data.filter(
-    (service) =>
-      (!area || service.area === area) &&
-      String(service.name || "")
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-  );
+  const results = data;
   const update = async (values) => {
     if (lock.current) return;
     lock.current = true;
@@ -112,9 +107,9 @@ const ManageService = () => {
       {!loading && !error && (
         <SummaryCards
           items={[
-            { label: "Services listed", value: data.length },
-            { label: "Service areas", value: areas.length },
-            { label: "Matching listings", value: results.length },
+            { label: "Services loaded", value: data.length },
+            { label: "Areas on this page", value: areas.length },
+            { label: "Loaded matching listings", value: results.length },
           ]}
         />
       )}
@@ -127,15 +122,10 @@ const ManageService = () => {
         />
         <FormField
           label="Service area"
-          as="select"
+          placeholder="Search service areas"
           value={area}
           onChange={(event) => setArea(event.target.value)}
-        >
-          <option value="">All areas</option>
-          {areas.map((value) => (
-            <option key={value}>{value}</option>
-          ))}
-        </FormField>
+        />
         <Button variant="outline" disabled={loading} onClick={retry}>
           Refresh
         </Button>
@@ -221,6 +211,7 @@ const ManageService = () => {
           />
         )}
       </CollectionState>
+      {!loading && !error && <LoadMore page={page} label="Load more services" />}
       <Dialog
         open={!!editing}
         onClose={() => {

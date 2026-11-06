@@ -23,6 +23,15 @@ const fixture = createFixture({
   seedAdminRoles: true,
 });
 const { ObjectId } = require("../../gadget-aid-server/node_modules/mongodb");
+const qaCategory = "777777777777777777777777";
+fixture.db.categories.rows.push({ _id: new ObjectId(qaCategory), name: "Laptop repairs", slug: "laptops", state: "active", revision: 1 });
+fixture.db.services.rows[0].categoryId = qaCategory;
+fixture.db.services.rows[0].categoryLabel = "Laptop repairs";
+for (let i = 0; i < 15; i++) {
+  const serviceId = new ObjectId((100 + i).toString(16).padStart(24, "0"));
+  fixture.db.services.rows.push({ ...fixture.service, _id: serviceId, name: `QA repair ${i + 1}`, price: i % 2 ? "9.50" : 100, categoryId: qaCategory, categoryLabel: "Laptop repairs", createdAt: new Date(+fixedTime + i * 1000) });
+  fixture.db.bookings.rows.push({ ...fixture.booking, _id: new ObjectId((200 + i).toString(16).padStart(24, "0")), serviceName: `QA repair ${i + 1}`, createdAt: new Date(+fixedTime + i * 1000) });
+}
 const {
   technicianId,
   defaultAvailability,
