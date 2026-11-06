@@ -30,15 +30,35 @@ const identities = {
     photoURL: null,
   },
 };
-let active = "customer";
+const sessionKey = "gadgetaid.qa.session";
+const savedSession = sessionStorage.getItem(sessionKey);
+let active =
+  savedSession !== null &&
+  (savedSession === "" || Object.hasOwn(identities, savedSession))
+    ? savedSession
+    : "customer";
 let offline = false;
 export const setFixtureIdentity = (value) => {
   active = value;
+  sessionStorage.setItem(sessionKey, value);
 };
-export const getFixtureUser = () =>
-  identities[active]
-    ? { ...identities[active], getIdToken: async () => active }
+export const getFixtureUser = () => {
+  const key = active;
+  return identities[key]
+    ? { ...identities[key], getIdToken: async () => key }
     : null;
+};
+// Public, synthetic QA credentials. This module is outside the production entry.
+export const fixtureLogin = (email, password) => {
+  const key = {
+    "admin@example.test": "admin",
+    "superadmin@example.test": "superadmin",
+  }[String(email).trim().toLowerCase()];
+  if (!key || password !== "GadgetAidDemo123!")
+    throw new Error("Invalid demo credentials");
+  setFixtureIdentity(key);
+  return { user: getFixtureUser() };
+};
 export const setFixtureOffline = (value) => {
   offline = value;
 };

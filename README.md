@@ -58,14 +58,14 @@ Start the isolated demo from `gadget-aid-client`:
 npm run qa
 ```
 
-Open [the demo admin workspace](http://127.0.0.1:5176/admin), then choose the role from the **Demo session** dropdown at the top.
+Open [the demo login page](http://127.0.0.1:5176/login) in your local browser and enter one of these demo accounts. Login opens the admin workspace. The **Demo session** dropdown also remains available for QA.
 
 | Demo role | Demo email | Password | Demo session option |
 | --- | --- | --- | --- |
-| Super Admin | `superadmin@example.test` | Not required | **Super Admin** |
-| Admin | `admin@example.test` | Not required | **Admin** |
+| Super Admin | `superadmin@example.test` | `GadgetAidDemo123!` | **Super Admin** |
+| Admin | `admin@example.test` | `GadgetAidDemo123!` | **Admin** |
 
-These are synthetic QA identities selected through the demo toolbar, not email/password login accounts. They work only on the isolated QA server at port 5176, not the normal app at port 5173 or the deployed website. No real Firebase Admin/Super Admin account has been created. For real account setup, see [Super Admin bootstrap and technician onboarding](docs/PHASE_9_VALIDATION.md#bootstrap-and-onboarding). Restarting the QA server resets demo changes.
+These are public, synthetic QA credentials, not Firebase accounts or real security credentials. They work only on the isolated QA server at port 5176, not the normal app at port 5173 or the deployed website. The demo session survives page refresh in the same browser tab; no password is stored. No real Firebase Admin/Super Admin account has been created. For real account setup, see [Super Admin bootstrap and technician onboarding](docs/PHASE_9_VALIDATION.md#bootstrap-and-onboarding). Restarting the QA server resets demo data.
 
 ## Data and API policy
 

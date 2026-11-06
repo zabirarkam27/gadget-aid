@@ -1,4 +1,5 @@
 import CapabilityGate from "../../src/router/CapabilityGate";
+import DemoLogin from "./DemoLogin";
 import AdminWorkspace from "../../src/pages/AdminWorkspace";
 import AccountAccess from "../../src/pages/AccountAccess";
 import MyDisputes from "../../src/pages/MyDisputes";
@@ -24,7 +25,12 @@ import AddService from "../../src/pages/AddService";
 import ManageService from "../../src/pages/ManageService";
 import ErrorPage from "../../src/pages/Error";
 import ContactUs from "../../src/pages/ContactUs";
-import { setFixtureIdentity, getFixtureUser, setFixtureOffline } from "./state";
+import {
+  setFixtureIdentity,
+  getFixtureUser,
+  setFixtureOffline,
+  fixtureLogin,
+} from "./state";
 const protectedPage = (page) => <PrivateRoutes>{page}</PrivateRoutes>;
 const router = createBrowserRouter([
   {
@@ -70,12 +76,7 @@ const router = createBrowserRouter([
       { path: "contact-us", element: <ContactUs /> },
       {
         path: "login",
-        element: (
-          <p className="ga-container ga-section">
-            QA session ended. Choose a demo session above. Never enter real
-            credentials in the QA fixture.
-          </p>
-        ),
+        element: <DemoLogin />,
       },
     ],
   },
@@ -89,7 +90,17 @@ const QA = () => {
   };
   return (
     <AuthContext.Provider
-      value={{ user, loading: false, setUser, logOut: async () => choose("") }}
+      value={{
+        user,
+        loading: false,
+        setUser,
+        logOut: async () => choose(""),
+        login: async (email, password) => {
+          const result = fixtureLogin(email, password);
+          setUser(result.user);
+          return result;
+        },
+      }}
     >
       <div className="bg-warning text-warning-content px-4 py-3 text-sm flex flex-wrap gap-4 items-center">
         <strong>ISOLATED QA · Demo data only</strong>
