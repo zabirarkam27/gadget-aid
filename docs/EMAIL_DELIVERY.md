@@ -18,9 +18,7 @@ npm run email:deliver
 
 It reads CRON_SECRET and optional EMAIL_JOB_URL from the server environment. The default job URL is `http://localhost:5000/internal/jobs/email`. Remote URLs must use HTTPS; redirects are rejected. The runner prints aggregate counts only, never recipients, payloads or credentials. Do not run it against real queued recipients as a test. Browser QA and automated tests use memory records, fake identities and a fake sender.
 
-The repository now includes `.github/workflows/booking-email.yml`, a five-minute GitHub Actions schedule and manual dispatch. It is deliberately inactive until repository variable `BOOKING_EMAIL_ENABLED=true` is set on main. To activate after provider/DNS verification, store the **same** backend CRON_SECRET as GitHub Actions secret `BOOKING_EMAIL_CRON_SECRET`, review the pending historical outbox, then enable the variable. The runner has no Resend key; it invokes only the fixed HTTPS backend job and prints aggregate counts. The workflow has read-only repository permissions, no persisted checkout credential, one concurrent job and a three-minute timeout. GitHub scheduling is best-effort and can be delayed; it is not an exact delivery-time guarantee. No variable, secret, paid resource or live scheduler was activated in this follow-up. Email preferences remain a later phase.
-
-A domain you own and its DNS access are required for general Resend sending; the shared Firebase `web.app` domain cannot be verified as your own mail domain. See [Resend domain requirements](https://resend.com/docs/dashboard/domains/introduction) and [GitHub scheduling limits](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+A domain you own and its DNS access are required for general Resend sending; the shared Firebase `web.app` domain cannot be verified as your own mail domain. See [Resend domain requirements](https://resend.com/docs/dashboard/domains/introduction).
 
 ## Data, failures and duplicates
 

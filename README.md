@@ -13,10 +13,6 @@
   <a href="#documentation">Documentation</a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/zabirarkam27/gadget-aid/actions/workflows/checks.yml"><img src="https://github.com/zabirarkam27/gadget-aid/actions/workflows/checks.yml/badge.svg" alt="Build and test checks" /></a>
-</p>
-
 ## Features
 
 | Area | What you can do |
@@ -126,7 +122,7 @@ The backend derives booking prices and ownership from canonical records and chec
 | `gadget-aid-server` | `npm run test:mongo` | Disposable local replica-set transaction tests |
 | `gadget-aid-server` | `npm run email:check` | Email configuration readiness |
 
-Tests use synthetic identities and disposable data. The developer QA harness is separate from the public demo and must not be deployed. GitHub Actions runs Node 22 installs, tests, client lint/build, dependency audits and MongoDB integration checks.
+Tests use synthetic identities and disposable data. The developer QA harness is separate from the public demo and must not be deployed. Run the checks above locally before releasing changes.
 
 ## Project structure
 
@@ -134,8 +130,7 @@ Tests use synthetic identities and disposable data. The developer QA harness is 
 gadget-aid/
 ├── gadget-aid-client/   # React app, assets and frontend tests
 ├── gadget-aid-server/   # Express API, operator scripts and backend tests
-├── docs/               # API, security, configuration and product policies
-└── .github/workflows/   # CI checks and guarded email scheduler
+└── docs/               # API, security, configuration and product policies
 ```
 
 ## Deployment
