@@ -31,3 +31,24 @@ Thumbs.db
 # Local Vercel project links and deployment environment downloads.
 **/.vercel/
 **/.env.production.local
+
+# Local planning, historical reports and generated QA evidence.
+/plan.md
+/docs/screenshots/
+/docs/PHASE_*.md
+/docs/*VALIDATION.md
+/docs/*RESPONSIVE*.json
+/docs/*AUDIT*.md
+/docs/LIVE_*.md
+/docs/DEMO_*.md
+/docs/API_MAP.md
+/docs/KNOWN_ISSUES.md
+/docs/DESIGN_SYSTEM.md
+/docs/ROUTE_AND_FEATURE_MAP.md
+
+# Retired previews and redundant starter files (local copies only).
+/gadget-aid-client/README.md
+/gadget-aid-client/design-system.html
+/gadget-aid-client/src/dev/
+/gadget-aid-client/public/vite.svg
+/gadget-aid-client/public/_redirects

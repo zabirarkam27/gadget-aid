@@ -1,6 +1,6 @@
 # Private receipt image storage
 
-Production is now enabled at [GadgetAid My devices](https://gadget-aid.web.app/devices). The existing encryption key was configured as a Vercel production secret and both live backend/frontend were released and verified. See [live release evidence and operation notes](LIVE_RECEIPT_RELEASE.md).
+Private receipt photos are available at [My devices](https://gadget-aid.web.app/devices). This guide defines access, validation, retention and key recovery.
 
 Receipt upload is enabled for device owners on the matched frontend/backend. It uses the existing MongoDB Atlas deployment with application-encrypted content; no public bucket, Firebase Storage download token or new cloud billing account is created. This supersedes Phase 10's initial upload-unavailable limitation for JPEG/PNG photos only.
 
@@ -25,7 +25,7 @@ Keep receipts until the owner deletes the receipt or its device; there is no aut
 
 ## Server configuration and key recovery
 
-The local server key has been generated in the ignored `gadget-aid-server/.env`, and private lookup indexes have been provisioned. No key is printed, committed or sent to the client. For a new environment with no stored encrypted receipts:
+Keep server keys in the ignored environment or deployment secret store. Never print, commit or send them to the client. For a new environment with no stored encrypted receipts:
 
 ```powershell
 # From gadget-aid-server with the existing server database configuration:
@@ -52,10 +52,6 @@ Without a valid configured vault, uploads fail closed and the UI reports unavail
 
 Errors include `RECEIPT_UNAVAILABLE`, `RECEIPT_TYPE`, `RECEIPT_INVALID_IMAGE`, `RECEIPT_TOO_LARGE`, `RECEIPT_POLICY_REQUIRED`, `RECEIPT_QUOTA`, `RECEIPT_RATE_LIMIT`, `RECEIPT_BUSY` and `UPLOAD_REFERENCE_CONFLICT`.
 
-## Verification
+## References
 
-98 backend tests pass, including seven receipt tests covering AES authentication/rotation/tampering, owner privacy, EXIF stripping, invalid/corrupt/oversized files, quotas, exact-retry semantics, missing keys, restricted-owner rights and rollback. The real local MongoDB integration suite confirms encrypted content round-trip, metadata-write rollback, exact retry and atomic device/receipt cascade deletion. Client lint, 18 tests and build pass; the existing main-bundle size warning remains.
-
-Browser QA uploaded the synthetic [demo receipt](../gadget-aid-client/tests/qa/demo-receipt.png), displayed the normalized JPEG metadata/success message and verified the disabled-until-confirmed deletion dialog. Download content/integrity and access checks were verified through API/integration tests. No real invoice, personal file or payment detail was used. [Upload screenshot](screenshots/private-receipt-upload.png).
-
-References: [Sharp constructor limits](https://sharp.pixelplumbing.com/api-constructor/), [metadata removal](https://sharp.pixelplumbing.com/api-output/), [MongoDB transactions](https://www.mongodb.com/docs/drivers/node/v6.x/crud/transactions/).
+[Sharp limits](https://sharp.pixelplumbing.com/api-constructor/), [metadata handling](https://sharp.pixelplumbing.com/api-output/), [MongoDB transactions](https://www.mongodb.com/docs/drivers/node/v6.x/crud/transactions/).

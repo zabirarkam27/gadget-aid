@@ -1,6 +1,4 @@
-# Phase 12 product, privacy and reward rules
-
-6 November 2026. The owner requested Phase 12, chose discount points valid for one year, then delegated a realistic discount policy. The bounded provider-funded policy below is an implementation choice under that instruction; it is not a claim about market-standard rewards.
+# Repair tools, gallery and discount-points policies
 
 ## Repair decisions and discovery
 
@@ -34,4 +32,4 @@ Retention: examples and encrypted images stay until a participant deletes/withdr
 
 Collections: `savedTechnicians`, `repairExamples`, `repairExampleFiles`, `loyaltyProfiles`, `loyaltyCredits`, `loyaltySpends`; existing `operationMeta` guards/counters and source bookings are updated transactionally. Ledger history retains minimal owner/source references for accounting; user DTOs omit source customer/booking identifiers on referral credits. No prompt, passport, receipt, serial or email is copied into these public outputs. No external message is sent automatically. Production backup/retention and abuse review remain operational responsibilities.
 
-Before a large-scale rollout review query plans and provision indexes on savedTechnicians(ownerUid,_id), examples(state,customerConsent,_id), exampleFiles(exampleId)/ownerUid, loyaltyProfiles(code unique), loyaltyCredits(ownerUid,expiresAt,availableAt)/ownerUid,type,day/month and loyaltySpends(ownerUid,_id). The deployment must support MongoDB transactions and the existing image key/runtime. No production seed, bulk reward migration, cash discount, public customer image or new production release is performed by QA.
+Before a large-scale rollout review query plans and provision indexes on savedTechnicians(ownerUid,_id), examples(state,customerConsent,_id), exampleFiles(exampleId)/ownerUid, loyaltyProfiles(code unique), loyaltyCredits(ownerUid,expiresAt,availableAt)/ownerUid,type,day/month and loyaltySpends(ownerUid,_id). The deployment must support MongoDB transactions and the existing image key/runtime. Do not seed synthetic rewards or images into production; keep test identities and data isolated.

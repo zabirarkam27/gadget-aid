@@ -1,6 +1,6 @@
 # Email delivery setup and recovery
 
-Phase 7 includes a Resend adapter and a durable, protected delivery job. In-app notifications and messages work without email credentials. **Live booking email remains blocked:** on 6 November 2026 the owner confirmed there is no Resend account or verified sending domain. Production has APP_URL, but no RESEND_API_KEY, EMAIL_FROM or CRON_SECRET. Firebase authentication/reset emails are separate and do not enable this booking outbox. No real booking email was sent as a test.
+The backend includes a Resend adapter and a durable, protected delivery job. In-app notifications and messages work without email credentials. Booking email remains disabled until a verified sender, provider key and scheduler are configured. Firebase authentication/reset emails are separate from this booking outbox.
 
 ## Configure on the backend
 

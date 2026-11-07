@@ -1,117 +1,164 @@
-# GadgetAid
+<p align="center">
+  <img src="gadget-aid-client/public/logo.png" alt="GadgetAid logo" width="88" />
+</p>
 
-A gadget repair service marketplace built with React/Vite, Firebase Authentication, Express and MongoDB. Customers discover services and request repairs; providers manage listings and update repair status.
+<h1 align="center">GadgetAid</h1>
 
-## Current features
+<p align="center">A second life for your tech.<br />Discover repair services, approve quotations and follow every step of a repair.</p>
 
-- Email/password and Google sign-in, password-reset page and protected-route return navigation.
-- Paginated service catalogue with server-side search, category/area/price filters and newest/price sorting.
-- Customer booking history, provider work queue, service creation/edit/removal.
-- Controlled repair stages, versioned diagnosis/quotations, customer approval/rejection, quotation questions and a shared audit timeline; refreshed on demand.
-- Dark/light themes, responsive navigation, accessible forms and confirmation dialogs.
-- Server-derived booking price/provider snapshots, ownership checks and duplicate protection.
-- Private booking conversations, unread message counts and persistent in-app notifications with explicit read actions.
-- Server-side transactional email adapter, durable delivery records and a protected retry job; requires email provider and scheduler configuration.
-- Technician profiles, self-reported skills/experience/certifications and real review aggregates.
-- Weekly hours, date exceptions/holidays, reserved appointment slots and atomic cancellation release.
-- One review per verified completed booking, permanent provider responses and private reports with audited operator moderation.
-- Private Gadget Passports with serial protection, booking-linked repair history, private QR links and confirmed JSON export/device deletion.
-- Provider-issued repair warranty terms, recorded-handover eligibility and customer claims with reasoned provider decisions.
-- Encrypted private receipt photos with owner-only upload/download, image validation, quotas and atomic deletion.
-- Guided repair assistant with preliminary issue categories, safety overrides and real service matching. Optional consented AI classification is integrated but not activated without a server AI Gateway key; guided results are labeled rules-based. See [Phase 11 privacy/setup](docs/PHASE_11_PRIVACY.md).
-- Repair/replace calculator, nonbinding estimates from actual listings, comparison of up to three services, private saved technicians and recycling information.
-- Before/after gallery with encrypted private drafts, exact customer consent and audited admin moderation before public display; participants can withdraw examples.
-- Discount points with a private ledger, one-year expiry and explicit provider-funded quotation offers plus customer redemption consent. See [Phase 12 rules](docs/PHASE_12_DESIGN.md) and [validation](docs/PHASE_12_VALIDATION.md).
+<p align="center">
+  <a href="https://gadget-aid.web.app">Live website</a> ·
+  <a href="https://gadget-aid.web.app/login">Try the demo</a> ·
+  <a href="#quick-start">Run locally</a> ·
+  <a href="#documentation">Documentation</a>
+</p>
 
-Signed-in customers can book and review eligible repairs. Offering services requires approved Technician access. Admin and Super Admin permissions are server controlled; public visitors can browse. Providers can offer date requests or reserved one-hour appointments in Bangladesh time. Profile claims are self-reported; completed-booking reviews are checked against server-recorded handover. Payments and instant push notifications are not implemented.
+<p align="center">
+  <a href="https://github.com/zabirarkam27/gadget-aid/actions/workflows/checks.yml"><img src="https://github.com/zabirarkam27/gadget-aid/actions/workflows/checks.yml/badge.svg" alt="Build and test checks" /></a>
+</p>
 
-Phase 9 adds platform operations at `/admin`: overview, masked accounts, technician applications/publication, listings, bookings, disputes, reviews/reports, categories, roles and audit/email logs. Sensitive actions require recent sign-in, a reason, explicit confirmation and atomic audit persistence. See [approved authorization](docs/PHASE_9_AUTHORIZATION.md) and [Phase 9 setup and verification](docs/PHASE_9_VALIDATION.md). No real account is automatically promoted. Review existing-provider onboarding before deploying the matched client/server.
+## Features
 
-Phase 10 adds **My devices** at `/devices`. Add a private passport, then link it from your booking's **Gadget Passport & warranty** panel. Only the passport owner can read its record, including through its QR link. Providers can issue repair-specific warranty terms after recorded handover; customers can submit claims within the stated dates. **Private receipts** now accepts JPEG/PNG photos up to 3 MiB with consent, image normalization and AES-256-GCM storage encryption. PDF uploads remain unavailable. See [receipt storage setup/retention](docs/RECEIPT_STORAGE.md) and [Phase 10 privacy, warranty rules and validation](docs/PHASE_10_VALIDATION.md).
+| Area | What you can do |
+| --- | --- |
+| Discovery | Search and filter services, browse technician profiles, save technicians and compare up to three listings. |
+| Repair workflow | Request a booking, review diagnosis and versioned quotations, approve work and follow the status timeline. |
+| Communication | Private booking conversations, unread counts and in-app notifications. |
+| Device records | Private Gadget Passports, repair history, encrypted receipt photos, private QR links and provider warranty claims. |
+| Repair decisions | Repair/replace calculator, nonbinding listing-price estimates, guided suggestions and consented, moderated before/after examples. |
+| Rewards | Eligible completion/referral points, one-year expiry and technician-funded quotation discounts with customer consent. |
+| Operations | Technician approvals, moderation, disputes, reviews, categories, protected role management and audit records. |
 
-Private receipt storage is live at [GadgetAid My devices](https://gadget-aid.web.app/devices). Both frontend and backend have been deployed with the existing encryption key preserved. [Release verification and operation notes](docs/LIVE_RECEIPT_RELEASE.md).
+Includes dark/light themes, responsive layouts and keyboard-accessible forms and dialogs. Provider claims remain self-reported; review ratings come from eligible completed bookings.
 
-Phases 1–12 are published to the [live website](https://gadget-aid.web.app). Booking email delivery and optional external AI remain unconfigured; in-app communication and guided repair suggestions work without them. See the [full-plan audit](docs/FULL_PLAN_AUDIT.md) and [live release evidence](docs/LIVE_FULL_RELEASE.md). Points offer 20 per eligible completed repair, 40 per eligible referral, and 100 points for 5% off labor up to USD 5 when the provider explicitly funds that quotation. Points mature after seven days and expire 365 days after the qualifying handover. See the policy for eligibility, caps and cancellation accounting.
+## Try a demo
 
-## Run locally
+Visit the [login page](https://gadget-aid.web.app/login) and click **Log in as Demo Admin** or **Log in as Demo Super Admin**. Manual sample login also works:
 
-Use the existing `.env.example` files to configure each application. Keep actual environment files out of Git. `VITE_*` values are bundled into the browser and must not contain privileged secrets.
+| Account | Email | Password |
+| --- | --- | --- |
+| Demo Admin | `admin@example.test` | `GadgetAidDemo123!` |
+| Demo Super Admin | `superadmin@example.test` | `GadgetAidDemo123!` |
 
-Backend, from `gadget-aid-server`:
+These public synthetic credentials open a browser-only sample workspace. You can edit sample data; changes reset on reload. Super Admin can additionally manage sample Admin access. The demo does not grant access to live users, bookings or Firebase accounts.
 
-```powershell
+## Technology
+
+| Layer | Stack |
+| --- | --- |
+| Frontend | React 19, Vite, React Router, Tailwind CSS, daisyUI |
+| Authentication | Firebase Authentication and Firebase Admin |
+| Backend | Node.js 22, Express, MongoDB transactions |
+| Private images | Sharp normalization and AES-256-GCM encryption |
+| Optional integrations | Resend email and Vercel AI Gateway |
+| Hosting | Firebase Hosting frontend and Vercel API |
+
+## Quick start
+
+### Requirements
+
+- Node.js **22.x** and npm.
+- A transaction-capable MongoDB replica set or Atlas cluster.
+- A Firebase project with Email/Password and Google sign-in configured, including authorized frontend domains.
+
+```bash
+git clone https://github.com/zabirarkam27/gadget-aid.git
+cd gadget-aid
+```
+
+Create a `.env` in each application using its `.env.example` as a reference. Preserve existing credentials when configuring an existing checkout.
+
+| Application | Configuration |
+| --- | --- |
+| Server | `DB_USER`, `DB_PASSWORD`, `FB_PROJECT_ID`, `FB_CLIENT_EMAIL`, `FB_PRIVATE_KEY`; locally use `NODE_ENV=development`, `PORT=5000`, `CORS_ORIGINS=http://localhost:5173`. |
+| Client | `VITE_API_URL=http://localhost:5000` and the `VITE_FIREBASE_*` web configuration fields. |
+
+The server currently uses the project's Atlas cluster in `gadget-aid-server/index.js`; adapt the connection for your own cluster. Firebase web configuration is public. Server credentials and encryption/API keys must never use a `VITE_` prefix or be committed.
+
+**Terminal 1 — backend**
+
+```bash
+cd gadget-aid-server
 npm ci
 npm start
 ```
 
-For local development use `NODE_ENV=development`, `PORT=5000` and include `http://localhost:5173` in `CORS_ORIGINS`. Configure Firebase Admin and MongoDB with your own environment values. GET `/health` checks database readiness; GET `/` is liveness only.
+**Terminal 2 — frontend**
 
-Frontend, from `gadget-aid-client`:
-
-```powershell
-npm ci --legacy-peer-deps
+```bash
+cd gadget-aid-client
+npm ci
 npm run dev
 ```
 
-Set `VITE_API_URL=http://localhost:5000` in the local client environment. Open the URL printed by Vite, normally `http://localhost:5173`. The legacy-peer flag accommodates the existing React 19 / react-helmet-async 2 peer declaration; no dependency versions were changed in these phases.
+Open [localhost:5173](http://localhost:5173). API readiness: [localhost:5000/health](http://localhost:5000/health).
 
-## Verification
+### Optional configuration
 
-From the client: `npm run build`, `npm run lint`, `npm test`.
+- **Private receipt/gallery images:** configure the server vault and preserve existing encryption keys. [Storage guide](docs/RECEIPT_STORAGE.md).
+- **Booking email:** requires a Resend key, verified sender, frontend URL and protected scheduler. [Email guide](docs/EMAIL_DELIVERY.md).
+- **External AI:** requires a server Gateway key, enablement and user consent. Guided suggestions work without it. [Assistant guide](docs/AI_ASSISTANT.md).
+- **Support mailbox:** set `VITE_SUPPORT_EMAIL` after verifying mailbox ownership and delivery.
 
-From the server: `npm test`. Backend tests start temporary local HTTP servers with fake identities and a fresh in-memory collection fixture. They do not import the environment-backed server entry or connect to MongoDB/Firebase.
+Booking email and external AI are not currently activated on the live site. Payments, instant push notifications and recycling collection are not implemented.
 
-For browser QA, run `npm run qa` from the client and open `http://127.0.0.1:5176/booked-services`. This is a separate test root/API using demo customer/provider identities and memory records. Its toolbar labels the environment, permits switching test identity and simulating offline requests. It never uses real authentication or a real database. Restart it to reset demo data. It is not a production build entry; do not deploy the QA server. Ports 5055 and 5176 must be free.
+## Access and security
 
-## Demo Admin and Super Admin access
+| Role | Access |
+| --- | --- |
+| Public visitor | Public services and technician information. |
+| Signed-in customer | Their own bookings, conversations, devices, reviews and points. |
+| Technician | Approved access to their own services, schedules and repairs. |
+| Admin | Platform operations and Technician approval; cannot create Admins or Super Admins. |
+| Super Admin | Admin operations plus Admin access management. |
 
-The [live login page](https://gadget-aid.web.app/login) and normal localhost login show **Log in as Demo Admin** and **Log in as Demo Super Admin** buttons with these public synthetic credentials. Clicking opens `/demo`; entering the same credentials in the login form also works.
+The backend derives booking prices and ownership from canonical records and checks authorization and token revocation. Sensitive operator actions require recent sign-in, a reason, confirmation and transactional audit records. Super Admin bootstrap is server-only; see [operations](docs/OPERATIONS.md).
 
-The public demo is an editable, browser-only sample workspace: publish/hide sample listings, review sample technicians, restrict/restore sample customers, resolve a sample dispute and inspect its activity log. Demo Super Admin can additionally grant/revoke sample Admin access. Confirm changes with a reason. Edits reset on reload; the chosen demo role persists only in this tab's session storage. No password, Firebase token or real role is stored or granted; demo actions never call the production API. Existing real sign-in is unaffected.
+## Development and checks
 
-The separate developer QA environment remains available from `gadget-aid-client`:
+| Directory | Command | Purpose |
+| --- | --- | --- |
+| `gadget-aid-client` | `npm test` | Frontend behavior and utility tests |
+| `gadget-aid-client` | `npm run lint` | ESLint |
+| `gadget-aid-client` | `npm run build` | Production build |
+| `gadget-aid-client` | `npm run qa` | Isolated browser QA at `127.0.0.1:5176`, memory API at port `5055` |
+| `gadget-aid-server` | `npm test` | Authorization, validation and workflow tests |
+| `gadget-aid-server` | `npm run test:mongo` | Disposable local replica-set transaction tests |
+| `gadget-aid-server` | `npm run email:check` | Email configuration readiness |
 
-```powershell
-npm run qa
+Tests use synthetic identities and disposable data. The developer QA harness is separate from the public demo and must not be deployed. GitHub Actions runs Node 22 installs, tests, client lint/build, dependency audits and MongoDB integration checks.
+
+## Project structure
+
+```text
+gadget-aid/
+├── gadget-aid-client/   # React app, assets and frontend tests
+├── gadget-aid-server/   # Express API, operator scripts and backend tests
+├── docs/               # API, security, configuration and product policies
+└── .github/workflows/   # CI checks and guarded email scheduler
 ```
-
-Open [the demo login page](http://127.0.0.1:5176/login) in your local browser and enter one of these demo accounts. Login opens the admin workspace. The **Demo session** dropdown also remains available for QA.
-
-| Demo role | Demo email | Password | Demo session option |
-| --- | --- | --- | --- |
-| Super Admin | `superadmin@example.test` | `GadgetAidDemo123!` | **Super Admin** |
-| Admin | `admin@example.test` | `GadgetAidDemo123!` | **Admin** |
-
-These are public synthetic demo credentials, not Firebase accounts or real security credentials. The developer QA app has its own memory API and full synthetic workflows; it is separate from the new browser-only public demo. Real operator accounts are configured separately and their passwords are never published here. For real account setup, see [Super Admin bootstrap and technician onboarding](docs/PHASE_9_VALIDATION.md#bootstrap-and-onboarding). Restarting the QA server resets QA data.
-
-## Real login and account security
-
-Use `/login` on the normal app (`http://localhost:5173/login` locally) for real Firebase accounts. Sign in with email/password or the Google provider already linked to that same account. Roles follow the verified Firebase UID and server grant, not a selected email or login button.
-
-Open **My account → Account security** (`/account-security`) to change a password or explicitly connect Google without creating another GadgetAid identity. Password changes require current-password verification; Google-only accounts reauthenticate with Google before adding password access. New passwords must match confirmation and meet the Firebase project policy: 12–128 characters, including uppercase, lowercase, a number and a symbol. Existing users are not forced to upgrade merely to sign in.
-
-After changing a password, sign in again. All private backend routes check Firebase session revocation, including customer/provider requests. The Firebase **Forgot password** email flow remains available for recovery. A password-policy UI does not replace the Firebase project policy; see [account security verification and deployment notes](docs/ACCOUNT_SECURITY.md). Demo QA security actions are synthetic and never change real credentials.
-
-## Data and API policy
-
-New booking requests send only `serviceId`, `date` and optional `instruction`. The server loads the service, derives the price/provider/service information, attaches the authenticated customer and starts the request as pending. One customer/service/date is allowed; duplicates return HTTP409 with the existing booking reference. Existing records are not bulk migrated; repair tracking initializes on the first authorized workflow change.
-
-Removing a service hides it from the catalogue and preserves its ownership record so existing repairs remain manageable. Legacy bookings whose service was physically deleted before this change remain visible to their customer; they are withheld from provider queues when ownership cannot be verified. Recovery requires a separately reviewed reconciliation, not trusting the old client-supplied provider field.
-
-See [current API contract](docs/API_CONTRACT.md), [product plan](plan.md) and [Phase 5 validation](docs/PHASE_5_VALIDATION.md), [Phase 6 validation](docs/PHASE_6_VALIDATION.md), [Phase 7 validation](docs/PHASE_7_VALIDATION.md), [Phase 8 validation](docs/PHASE_8_VALIDATION.md) and [Phase 9 validation](docs/PHASE_9_VALIDATION.md).
 
 ## Deployment
 
-Firebase Hosting serves the frontend; `gadget-aid-server/vercel.json` points to the exported Express app. Git pushes are not a Firebase Hosting deployment. Release matching backend/frontend together: Phase 6 replaces the old status dropdown with revision-protected workflow actions. Matching legacy booking requests remain supported, but old clients cannot bypass approval using status updates. Avoid a backend-only rollback that would reintroduce arbitrary status writes. No production deployment or migration was performed in Phases 6–8.
+Use the linked Vercel project for the backend and Firebase Hosting for the frontend:
 
-## Communication and email
+```bash
+# From gadget-aid-server
+vercel deploy --prod
 
-Notifications and conversations refresh every 30 seconds while visible; manual refresh is available. Only the customer and canonical provider can read a booking conversation. Alerts and messages have separate unread counts. Messages do not authorize repairs; quotation approval remains an explicit workflow action.
+# From gadget-aid-client, with production frontend configuration
+npm run build
+firebase deploy --only hosting --project gadget-aid
+```
 
-Email is disabled until the server has a Resend key, verified sender, frontend APP_URL and CRON_SECRET, and a trusted scheduler invokes the delivery job. No secret belongs in VITE variables. See [email setup and recovery](docs/EMAIL_DELIVERY.md) for exact configuration, batch limits and failure handling. Production email delivery has not been activated by this change.
+A Git push alone does not publish Firebase Hosting. Release compatible backend/frontend versions together, verify `/health` and preserve private image keys. Never deploy the QA server or copy server secrets into frontend configuration.
 
-## Profiles, reviews and appointments
+## Documentation
 
-Use Technician profile in your workspace to publish your business details and optional weekly schedule. Experience and certification claims do not imply platform verification. Date requests require provider confirmation; appointment mode reserves one-hour slots across all of that provider's services, with date exceptions and a 90-day horizon. Changing hours cannot invalidate an existing reservation.
-
-Booking creation and reserved-slot cancellation require a transaction-capable MongoDB replica set (Atlas or a local test replica set). There is no unsafe nontransactional fallback. No production migration/backfill is performed. See [Phase 8 API and operation notes](docs/PHASE_8_VALIDATION.md) for limits, moderation steps and local MongoDB test instructions.
+- [API contract](docs/API_CONTRACT.md)
+- [Roles, bootstrap and local integration tests](docs/OPERATIONS.md)
+- [Account security](docs/ACCOUNT_SECURITY.md)
+- [Receipt storage and key recovery](docs/RECEIPT_STORAGE.md)
+- [Email delivery](docs/EMAIL_DELIVERY.md)
+- [Repair assistant privacy and setup](docs/AI_ASSISTANT.md)
+- [Gallery consent and discount-points policies](docs/PRODUCT_POLICIES.md)

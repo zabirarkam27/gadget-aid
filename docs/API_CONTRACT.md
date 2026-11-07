@@ -158,10 +158,10 @@ The original customer/service/date duplicate rule remains, even after cancellati
 
 Review eligibility requires customer identity match, another provider, completed workflow and a server-recorded provider completed-handover event in trusted tracking. A plain legacy completed string is insufficient. Deterministic per-booking review IDs prevent concurrent duplicates. Public aggregates include only valid ratings on eligible canonical-provider records whose deterministic ID and trusted creation marker match and whose moderation state is published; null average represents no reviews. Customer email/UID and private booking reference are omitted. There is no client rating-count field, review editing or self-review exception.
 
-Reports remain private and deduplicate per verified account/review; they do not auto-hide or change aggregates. A server-only operator CLI, requiring existing database authorization and an explicit write opt-in, can hide/restore with actor/reason/time audit history and resolve pending reports transactionally. No public admin/moderation endpoint or new role is created. Operator steps, limits, local transaction test evidence and rollout requirements are in [PHASE_8_VALIDATION.md](PHASE_8_VALIDATION.md).
+Reports remain private and deduplicate per verified account/review; they do not auto-hide or change aggregates. A server-only operator CLI, requiring existing database authorization and an explicit write opt-in, can hide/restore with actor/reason/time audit history and resolve pending reports transactionally. Current server-authorized moderation endpoints are described in the admin section below. Operator boundaries and local transaction setup are in [OPERATIONS.md](OPERATIONS.md).
 # Phase 9 operations extension
 
-The approved role model and production onboarding requirements are documented in [Phase 9 authorization](PHASE_9_AUTHORIZATION.md) and [setup/validation](PHASE_9_VALIDATION.md). Existing participant ownership and repair-approval rules remain enforced.
+The approved role model and production onboarding requirements are documented in [platform operations](OPERATIONS.md). Existing participant ownership and repair-approval rules remain enforced.
 
 | Endpoint | Access and input |
 | --- | --- |
@@ -216,7 +216,7 @@ All private endpoints below require a verified Firebase token. Cursor lists use 
 | `GET /loyalty/redemptions` | Own paginated spend/refund summaries; no internal allocation/source identity details. |
 | `POST /loyalty/referral` | `code`, `confirmed:true`; verified unrestricted account, immutable inviter choice before any booking; rejects self/cycles. |
 
-Quotation creation additionally accepts `loyaltyDiscount:boolean` (default false). The server computes provider-funded labor discount and resulting total. Approval of such an offer requires `redeemPoints:true` in addition to the normal decision/revision. The server rechecks provider eligibility and available credits, then commits the 100-point debit and approval together. Supported cancellation restores only unexpired allocations atomically, without renewing expiry. See [Phase 12 policy](PHASE_12_DESIGN.md) for all eligibility, maturity, expiry and funding rules.
+Quotation creation additionally accepts `loyaltyDiscount:boolean` (default false). The server computes provider-funded labor discount and resulting total. Approval of such an offer requires `redeemPoints:true` in addition to the normal decision/revision. The server rechecks provider eligibility and available credits, then commits the 100-point debit and approval together. Supported cancellation restores only unexpired allocations atomically, without renewing expiry. See [reward policy](PRODUCT_POLICIES.md) for all eligibility, maturity, expiry and funding rules.
 
 # Phase 10 passport and warranty extension
 
@@ -237,7 +237,7 @@ Every endpoint below requires a verified Firebase identity token with revocation
 | `POST /bookings/:id/warranty/claims` | Actual customer, within warranty dates; `description`, warranty `expectedRevision`; one claim thread per warranty. |
 | `POST /bookings/:id/warranty/decision` | Original canonical provider; `state`, `note` (10–2,000), `confirmed:true`, warranty `expectedRevision`; only allowed forward transitions. |
 
-Warranty dates derive from the server-recorded provider handover in Bangladesh time; date eligibility never implies claim approval. Additional codes: `STALE_PASSPORT`, `DEVICE_LIMIT`, `EXPORT_LIMIT`, `HANDOVER_REQUIRED`, `WARRANTY_EXISTS`, `WARRANTY_EXPIRED`, `CLAIM_EXISTS`, `INVALID_CLAIM_TRANSITION`. Details/retention/limits are in [Phase 10 validation](PHASE_10_VALIDATION.md). There is no public passport or manufacturer-warranty endpoint; receipt photo uploads are covered by the private receipt extension.
+Warranty dates derive from the server-recorded provider handover in Bangladesh time; date eligibility never implies claim approval. Additional codes: `STALE_PASSPORT`, `DEVICE_LIMIT`, `EXPORT_LIMIT`, `HANDOVER_REQUIRED`, `WARRANTY_EXISTS`, `WARRANTY_EXPIRED`, `CLAIM_EXISTS`, `INVALID_CLAIM_TRANSITION`. Details/retention/limits are in [receipt storage guide](RECEIPT_STORAGE.md). There is no public passport or manufacturer-warranty endpoint; receipt photo uploads are covered by the private receipt extension.
 # Private receipt image extension
 
 Owner-only receipt APIs now extend Gadget Passport: `GET/POST /devices/:id/receipts`, authenticated JPEG download at `GET /devices/:id/receipts/:receiptId/content`, and confirmed erasure at `DELETE /devices/:id/receipts/:receiptId`. Upload uses raw JPEG/PNG (3 MiB maximum), UUIDv4 `X-Upload-Id`, `X-Receipt-Policy: private-receipts-v1` and URI-encoded `X-Receipt-Label`. Images are validated/re-encoded, then stored with AES-256-GCM encryption. There are no public receipt URLs; Admin/Super Admin do not bypass ownership. Passport export adds a metadata manifest; deleting a passport also erases its receipts transactionally. [Full receipt contract, quotas, retention and key configuration](RECEIPT_STORAGE.md).

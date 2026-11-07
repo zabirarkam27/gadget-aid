@@ -1,6 +1,6 @@
 # Repair assistant privacy and safety design
 
-6 November 2026. Scope: Phase 11 text-only guided assistant and optional AI classification. No private passport reuse, image upload, booking automation or autonomous agent tools.
+Text-only guided repair suggestions and optional consented AI classification. No private passport reuse, image upload, booking automation or autonomous agent tools.
 
 ## Data flow
 
@@ -8,7 +8,7 @@ Signed-in customer → validated device category, optional brand/model, symptoms
 
 Guided mode uses local rules and public service records; it sends nothing to an AI provider. With AI configured, the user must choose AI mode and accept policy `repair-ai-v1` for the current description. Editing a field clears consent. Only category/brand/model/symptoms/onset are sent, through Vercel AI Gateway to the configured provider. UID, email, auth token and database records are never part of the model prompt. No model tools, browsing or conversation memory are provided. The model may process/retain requests under its provider/Gateway policies; zero retention is not promised. A future provider, retention or input change requires reviewing this design and policy version. SDK telemetry is disabled; infrastructure request-body logging must remain off. External processing requires both server enablement and request consent.
 
-The owner has no AI Gateway key. Therefore the real local/production model integration is not activated. Configuration returns `aiAvailable=false`; the UI labels output as rules-based rather than AI-generated. No live provider call was performed. A configured provider failure returns honest guided fallback, never a fabricated AI answer.
+Without a configured Gateway key and explicit server enablement, external AI remains unavailable. Configuration returns `aiAvailable=false`; the UI labels output as rules-based rather than AI-generated. A configured provider failure returns honest guided fallback, never a fabricated AI answer.
 
 ## Safety boundaries
 
@@ -20,7 +20,7 @@ Suggested services come solely from bounded, filtered real database queries and 
 
 ## Operational controls
 
-AI is off unless `AI_REPAIR_ENABLED=true` and server-only `AI_GATEWAY_API_KEY` exists. Never use a VITE-prefixed key. AI SDK 7 uses structured `generateText`/`Output.object` through Gateway; the configured default model ID was checked against the public model catalogue. Operator may change `AI_REPAIR_MODEL` only after reviewing provider/data handling.
+AI is off unless `AI_REPAIR_ENABLED=true` and server-only `AI_GATEWAY_API_KEY` exists. Never use a VITE-prefixed key. AI SDK 7 uses structured `generateText`/`Output.object` through Gateway; review the model ID against the provider catalogue before enabling it. Operator may change `AI_REPAIR_MODEL` only after reviewing provider/data handling.
 
 At most 10 AI attempts/user/day and 100 total/day, using transactionally updated fixed `operationMeta` counters and Bangladesh dates; failed attempts count. Only UID-linked counts/day are stored, not prompts/results. Counts overwrite on subsequent days; there is no assistant-history store. Two in-flight AI calls per server instance, 15-second provider abort, max 500 output tokens, no automatic model retry. Limits control calls/tokens, not a currency-denominated spending cap. Serverless instances can each have two active calls; shared daily quotas still apply. Guided requests have no paid calls; platform traffic protection remains a separate infrastructure responsibility.
 
