@@ -55,6 +55,7 @@ const matches = (row, query) =>
   Object.entries(query).every(([key, value]) => {
     if (key === "$or") return value.some((part) => matches(row, part));
     if (key === "$and") return value.every((part) => matches(row, part));
+    if (value && typeof value === "object" && "$elemMatch" in value) return Array.isArray(row[key]) && row[key].some(item => matches(item, value.$elemMatch));
     if (value === null) return row[key] == null;
     if (value instanceof RegExp)
       return typeof row[key] === "string" && value.test(row[key]);

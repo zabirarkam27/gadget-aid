@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import FormField from "../ui/FormField";
 import Button from "../Button";
 import { serviceErrors, serviceInput } from "../../utils/serviceValidation";
+import ModelPrices from "./ModelPrices";
 const ServiceForm = ({
   initial = {},
   onSubmit,
@@ -12,6 +13,7 @@ const ServiceForm = ({
   submitLabel = "Save service",
   onCancel,
 }) => {
+  const [modelPrices, setModelPrices] = useState(() => (Array.isArray(initial.modelPrices) ? initial.modelPrices : []).map((row, key) => ({ key, model: row.model, repair: row.repair, price: row.price })));
   const [categories, setCategories] = useState([]),
     [categoryError, setCategoryError] = useState("");
   useEffect(() => {
@@ -35,6 +37,7 @@ const ServiceForm = ({
     event.preventDefault();
     const values = {
       ...serviceInput(event.currentTarget),
+      modelPrices: modelPrices.map(({ model, repair, price }) => ({ model, repair, price })),
       categoryId: String(
         new FormData(event.currentTarget).get("categoryId") || "",
       ),
@@ -130,6 +133,7 @@ const ServiceForm = ({
         disabled={submitting}
         helper="Explain the repair, coverage and any conditions clearly. Only promise terms you can fulfil."
       />
+      <ModelPrices rows={modelPrices} setRows={setModelPrices} disabled={submitting} error={errors.modelPrices} />
       {error && (
         <p role="alert" className="text-error text-sm">
           {error}

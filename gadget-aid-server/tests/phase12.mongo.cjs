@@ -130,6 +130,15 @@ test(
           : await response.json(),
       };
     };
+    const { serviceFields } = require("./fixtures.cjs");
+    const modelRates = [{model:"Synthetic Model 12",repair:"Screen replacement",price:72.5},{model:"Synthetic Model 12 Pro",repair:"Battery replacement",price:30}];
+    assert.equal((await req("PUT", `/services/${ids.service}`, {...serviceFields,modelPrices:modelRates}, "provider")).status, 200);
+    const modelEstimate=await req("POST","/tools/estimate",{model:"synthetic model 12",symptom:"screen"});
+    assert.equal(modelEstimate.status,200);
+    assert.equal(modelEstimate.data.min,72.5);
+    assert.equal(modelEstimate.data.modelSpecific,true);
+    assert.equal((await req("POST","/tools/estimate",{model:"Synthetic Model 12 Pro",symptom:"screen"})).data.sampleSize,0);
+    assert.equal((await req("POST","/tools/estimate",{model:"Synthetic Model 12 Plus",symptom:"screen"})).data.sampleSize,0);
     const wallets = await Promise.all(
       Array.from({ length: 3 }, () => req("GET", "/loyalty?limit=20")),
     );

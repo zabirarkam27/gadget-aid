@@ -5,6 +5,7 @@ const { fail, checkKeys, idValue, serializeService } = require("./domain");
 const { visibleServices } = require("./access");
 const { listPage, catalogueFilter } = require("./listings");
 const { pageDocs, queryFilter } = require("./pagination");
+const { modelKey, repairPatterns } = require("./model-pricing");
 const savedId = (uid, technicianId) =>
   new ObjectId(
     createHash("sha256")
@@ -77,35 +78,76 @@ const createDiscoveryTools = ({ collections, clock }) => ({
         "VALIDATION_ERROR",
       );
     const db = await collections();
+    const requestedModel = model.trim();
+    const patterns = repairPatterns(symptom);
     const query = {
-      q: symptom.trim(),
+      q: requestedModel ? "" : symptom.trim(),
       limit: "100",
       ...(category ? { category } : {}),
     };
     const page = await listPage({
       collection: db.services,
-      filter: catalogueFilter(query),
+      filter: {
+        ...catalogueFilter(query),
+        ...(requestedModel
+          ? {
+              modelPrices: {
+                $elemMatch: {
+                  modelKey: modelKey(requestedModel),
+                  $and: patterns.map((pattern) => ({ repair: pattern })),
+                },
+              },
+            }
+          : {}),
+      },
       query,
       scope: "estimate",
       visible: (rows) => visibleServices(db, rows),
     });
     const priced = page.items
       .map(serializeService)
-      .filter((row) => row.price !== null);
-    const prices = priced.map((row) => row.price).sort((a, b) => a - b);
+      .map((row) => ({
+        ...row,
+        matchedPrices: requestedModel
+          ? row.modelPrices.filter(
+              (rate) =>
+                modelKey(rate.model) === modelKey(requestedModel) &&
+                patterns.every((pattern) => pattern.test(rate.repair)),
+            )
+          : [],
+      }))
+      .filter((row) =>
+        requestedModel ? row.matchedPrices.length > 0 : row.price !== null,
+      );
+    const prices = priced
+      .flatMap((row) =>
+        requestedModel
+          ? row.matchedPrices.map((rate) => rate.price)
+          : [row.price],
+      )
+      .sort((a, b) => a - b);
     res.json({
       sampleSize: prices.length,
       hasMore: !!page.nextCursor,
       min: prices.length ? prices[0] : null,
       max: prices.length ? prices.at(-1) : null,
-      modelSpecific: false,
-      basis:
-        "Current matching provider-listed service prices, not completed-repair bills. Model-specific parts, labor, taxes and warranty are not inferred. A technician must confirm the final quotation.",
-      items: priced.slice(0, 6).map((row) => card(row)),
-      currency: null,
+      serviceCount: priced.length,
+      requestedModel: requestedModel || null,
+      modelSpecific: !!requestedModel && prices.length > 0,
+      basis: requestedModel
+        ? "Provider-published USD prices for this exact model and matching repair keyword. Model variants are separate. These are non-binding listed prices, not completed-repair bills; parts, tax, condition and scope need a technician's final quotation. No generic price is substituted when a model has no matching rate."
+        : "Current matching provider-listed service prices, not completed-repair bills. No device-model compatibility or final parts/labor price is inferred. A technician must confirm the final quotation.",
+      items: priced
+        .slice(0, 6)
+        .map((row) => ({
+          ...card(row),
+          ...(requestedModel ? { matchedPrices: row.matchedPrices } : {}),
+        })),
+      currency: requestedModel ? "USD" : null,
       observedAt: clock(),
-      pricingUnit:
-        "Existing catalogue $ display; confirm currency with the provider.",
+      pricingUnit: requestedModel
+        ? "Provider-published USD model prices."
+        : "Existing catalogue $ display; confirm currency with the provider.",
     });
   },
   saved: async (req, res) => {

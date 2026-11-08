@@ -211,13 +211,22 @@ test("price estimates are bounded visible listed prices, not fabricated model-sp
   const r = await c.request(
     "POST",
     "/tools/estimate",
-    { symptom: "diagnostic", model: "Not a known model" },
+    { symptom: "diagnostic" },
     null,
   );
   assert.equal(r.status, 200);
   assert.equal(r.data.min, 85);
   assert.equal(r.data.modelSpecific, false);
   assert.equal(r.data.currency, null);
+  const unknown = await c.request(
+    "POST",
+    "/tools/estimate",
+    { symptom: "diagnostic", model: "Not a known model" },
+    null,
+  );
+  assert.equal(unknown.data.sampleSize, 0);
+  assert.equal(unknown.data.min, null);
+  assert.equal(unknown.data.modelSpecific, false);
   assert.equal(
     (await c.request("POST", "/tools/estimate", { symptom: "[no match]" })).data
       .sampleSize,
@@ -237,6 +246,239 @@ test("price estimates are bounded visible listed prices, not fabricated model-sp
     ).status,
     400,
   );
+});
+test("providers publish validated model rates; estimates separate exact model variants and repairs", async (t) => {
+  const c = await setup(t);
+  const { serviceFields } = require("./fixtures.cjs");
+  const rates = [
+    { model: "iPhone 13", repair: "Screen replacement", price: 80 },
+    { model: "iPhone 13 Pro", repair: "Screen replacement", price: 150 },
+    { model: "iPhone 13", repair: "Battery replacement", price: 30 },
+  ];
+  assert.equal(
+    (
+      await c.request(
+        "PUT",
+        `/services/${ids.service}`,
+        { ...serviceFields, modelPrices: rates },
+        "provider",
+      )
+    ).status,
+    200,
+  );
+  const result = await c.request(
+    "POST",
+    "/tools/estimate",
+    { model: "  IPHONE   13 ", symptom: "replacement screen" },
+    null,
+  );
+  assert.equal(result.status, 200);
+  assert.equal(result.data.modelSpecific, true);
+  assert.equal(result.data.currency, "USD");
+  assert.equal(result.data.min, 80);
+  assert.equal(result.data.max, 80);
+  assert.equal(result.data.sampleSize, 1);
+  assert.deepEqual(result.data.items[0].matchedPrices, [
+    {
+      model: "iPhone 13",
+      repair: "Screen replacement",
+      price: 80,
+      currency: "USD",
+    },
+  ]);
+  assert.ok(!JSON.stringify(result.data).includes("modelKey"));
+  assert.ok(!JSON.stringify(result.data).includes(users.provider.email));
+  assert.equal(
+    (
+      await c.request("POST", "/tools/estimate", {
+        model: "iPhone 13 Pro",
+        symptom: "screen",
+      })
+    ).data.min,
+    150,
+  );
+  assert.equal(
+    (
+      await c.request("POST", "/tools/estimate", {
+        model: "iPhone 13 Pro",
+        symptom: "battery",
+      })
+    ).data.sampleSize,
+    0,
+  );
+  assert.equal(
+    (
+      await c.request("POST", "/tools/estimate", {
+        model: "iPhone 13 Plus",
+        symptom: "screen",
+      })
+    ).data.sampleSize,
+    0,
+  );
+  assert.equal(
+    (
+      await c.request("POST", "/tools/estimate", {
+        model: "iPhone 13",
+        symptom: "screen",
+        category: ids.otherService,
+      })
+    ).data.sampleSize,
+    0,
+  );
+  c.db.entityControls.rows.push({
+    _id: `service:${ids.service}`,
+    state: "hidden",
+  });
+  assert.equal(
+    (
+      await c.request("POST", "/tools/estimate", {
+        model: "iPhone 13",
+        symptom: "screen",
+      })
+    ).data.sampleSize,
+    0,
+  );
+});
+test("model rates reject invalid/duplicate input, preserve legacy edits and require service ownership", async (t) => {
+  const c = await setup(t);
+  const { serviceFields } = require("./fixtures.cjs");
+  const rate = { model: "Phone X+", repair: "[panel] replacement", price: 0 };
+  const path = `/services/${ids.service}`;
+  assert.equal(
+    (
+      await c.request(
+        "PUT",
+        path,
+        { ...serviceFields, modelPrices: [rate] },
+        "other",
+      )
+    ).status,
+    403,
+  );
+  for (const rates of [
+    null,
+    {},
+    Array(21).fill(rate),
+    [rate, { ...rate, model: "phone x+" }],
+    [{ ...rate, price: true }],
+    [{ ...rate, price: 1.001 }],
+    [{ ...rate, price: -1 }],
+    [{ ...rate, model: " " }],
+    [{ ...rate, modelKey: "forged" }],
+  ])
+    assert.equal(
+      (
+        await c.request(
+          "PUT",
+          path,
+          { ...serviceFields, modelPrices: rates },
+          "provider",
+        )
+      ).status,
+      400,
+    );
+  assert.equal(
+    (
+      await c.request(
+        "PUT",
+        path,
+        { ...serviceFields, modelPrices: [rate] },
+        "provider",
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await c.request("POST", "/tools/estimate", {
+        model: "Phone X+",
+        symptom: "[panel]",
+      })
+    ).data.min,
+    0,
+  );
+  assert.equal(
+    (
+      await c.request("POST", "/tools/estimate", {
+        model: "Phone X",
+        symptom: "[panel]",
+      })
+    ).data.sampleSize,
+    0,
+  );
+  assert.equal(
+    (
+      await c.request("POST", "/tools/estimate", {
+        model: "Phone X+",
+        symptom: "panel.*",
+      })
+    ).data.sampleSize,
+    0,
+  );
+  assert.equal(
+    (await c.request("PUT", path, serviceFields, "provider")).status,
+    200,
+  );
+  assert.equal(
+    (await c.request("GET", `/services/${ids.service}`)).data.modelPrices
+      .length,
+    1,
+  );
+  assert.equal(
+    (
+      await c.request(
+        "PUT",
+        path,
+        { ...serviceFields, modelPrices: [] },
+        "provider",
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await c.request("GET", `/services/${ids.service}`)).data.modelPrices
+      .length,
+    0,
+  );
+  const created = await c.request(
+    "POST",
+    "/services",
+    { ...serviceFields, modelPrices: [rate] },
+    "provider",
+  );
+  assert.equal(created.status, 201);
+  assert.equal(
+    (await c.request("GET", `/services/${created.data.insertedId}`)).data
+      .modelPrices[0].currency,
+    "USD",
+  );
+});
+test("model matching happens before the bounded price sample", async (t) => {
+  const c = await setup(t);
+  const { ObjectId } = require("mongodb");
+  const { normalizeModelPrices } = require("../model-pricing");
+  const { priceValue } = require("../domain");
+  c.db.services.rows[0].modelPrices = normalizeModelPrices(
+    [{ model: "Target 12", repair: "Screen", price: 42 }],
+    priceValue,
+  );
+  for (let i = 0; i < 105; i++)
+    c.db.services.rows.push({
+      ...c.service,
+      _id: new ObjectId(),
+      createdAt: new Date(+fixedTime + 1000),
+      modelPrices: normalizeModelPrices(
+        [{ model: "Different 12", repair: "Screen", price: 999 }],
+        priceValue,
+      ),
+    });
+  const result = await c.request("POST", "/tools/estimate", {
+    model: "Target 12",
+    symptom: "screen",
+  });
+  assert.equal(result.status, 200);
+  assert.equal(result.data.min, 42);
+  assert.equal(result.data.sampleSize, 1);
 });
 test("saved technicians are owner scoped, idempotent, limited and respect current visibility", async (t) => {
   const c = await setup(t);

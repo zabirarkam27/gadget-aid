@@ -234,6 +234,7 @@ const createApp = ({
       "providerPhoto",
       "createdAt",
       "categoryId",
+      "modelPrices",
     ]);
     if (
       req.body.providerEmail !== undefined &&
@@ -266,6 +267,7 @@ const createApp = ({
       "description",
       "image",
       "categoryId",
+      "modelPrices",
     ]);
     const { services } = await collections(),
       service = await services.findOne({ _id: id, deletedAt: null });

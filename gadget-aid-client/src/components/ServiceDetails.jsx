@@ -199,6 +199,7 @@ const ServiceDetails = () => {
                     {service.description ||
                       "Contact the provider for service information."}
                   </p>
+                  {!!service.modelPrices?.length && <section className="mt-6 border-t border-base-300 pt-5"><h3 className="font-semibold mb-3">Provider-published model prices</h3><p className="ga-muted text-sm mb-4">Non-binding USD rates for the stated model and repair. Confirm condition, parts and final scope with the technician.</p><ul className="space-y-3">{service.modelPrices.map((rate, index) => <li key={index} className="break-words">{rate.model} · {rate.repair} · <strong>${rate.price.toFixed(2)} USD</strong></li>)}</ul></section>}
                 </div>
               </div>
               <aside className="ga-surface p-6 sm:p-8 lg:sticky lg:top-28">

@@ -1,6 +1,7 @@
 const { technicianId } = require("./identities");
 const { ObjectId } = require("mongodb");
 const { createHash } = require("node:crypto");
+const { normalizeModelPrices, publicModelPrices } = require("./model-pricing");
 
 class HttpError extends Error {
   constructor(status, message, code, fields) {
@@ -55,6 +56,11 @@ const photoUrl = (value) => {
 };
 const validateService = (body) => {
   const fields = {};
+  let modelPrices;
+  if (body.modelPrices !== undefined) {
+    try { modelPrices = normalizeModelPrices(body.modelPrices, priceValue); }
+    catch (error) { fields.modelPrices = error.message; }
+  }
   for (const [field, min, max] of [
     ["name", 2, 120],
     ["area", 2, 160],
@@ -80,6 +86,7 @@ const validateService = (body) => {
       fields,
     );
   return {
+    ...(modelPrices !== undefined ? { modelPrices } : {}),
     name: body.name.trim(),
     area: body.area.trim(),
     description: body.description.trim(),
@@ -128,6 +135,7 @@ const {
 const text = (value, fallback = "") =>
   typeof value === "string" ? value : fallback;
 const serializeService = (service) => ({
+  modelPrices: publicModelPrices(service.modelPrices, priceValue),
   _id: service._id,
   categoryId:
     typeof service.categoryId === "string" ? service.categoryId : null,

@@ -90,7 +90,7 @@ export default function RepairEstimate() {
             maxLength={80}
             value={form.model}
             onChange={(e) => change("model", e.target.value)}
-            helper="Context only; the catalogue has no model-specific price table."
+            helper="Match provider-published model prices. Variants such as Pro or Plus are separate. Leave empty for general listing prices."
           />
           <FormField
             label="Repair keyword"
@@ -131,19 +131,49 @@ export default function RepairEstimate() {
           <h2 className="text-xl font-semibold">
             {result.sampleSize
               ? `$${result.min.toFixed(2)}–$${result.max.toFixed(2)} in matching listings`
-              : "No matching priced listings"}
+              : result.requestedModel
+                ? "No published price for this model and repair"
+                : "No matching priced listings"}
           </h2>
           <p className="ga-muted">
-            {result.sampleSize} priced records in this bounded sample
-            {result.hasMore ? "; more matching records exist" : ""}. The $
-            symbol follows the existing catalogue display; confirm currency with
-            the provider.
+            {result.sampleSize} {result.sampleSize === 1 ? "price" : "prices"}{" "}
+            in this bounded sample
+            {result.hasMore ? "; more matching records exist" : ""}.
+            {result.currency === "USD"
+              ? ` Provider-published USD rates${result.requestedModel ? ` for ${result.requestedModel}` : ""}.`
+              : " The $ symbol follows the existing catalogue display; confirm currency with the provider."}
           </p>
           <p>{result.basis}</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {result.items.map((s) => (
-              <ServiceCard key={s._id} service={s} />
-            ))}
+            {result.items.map((s) =>
+              result.modelSpecific ? (
+                <article
+                  key={s._id}
+                  className="ga-surface p-5 space-y-4 min-w-0"
+                >
+                  <h3 className="font-semibold break-words">{s.name}</h3>
+                  <p className="ga-muted break-words">
+                    {s.providerName} · {s.area}
+                  </p>
+                  <ul className="space-y-3">
+                    {s.matchedPrices.map((rate, index) => (
+                      <li key={index} className="break-words">
+                        <strong>{rate.model}</strong>
+                        <p>
+                          {rate.repair}:{" "}
+                          <strong>${rate.price.toFixed(2)} USD</strong>
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button to={`/services/${s._id}`} variant="outline">
+                    View service
+                  </Button>
+                </article>
+              ) : (
+                <ServiceCard key={s._id} service={s} />
+              ),
+            )}
           </div>
           <Button to="/services" variant="outline">
             Browse all services
