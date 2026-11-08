@@ -62,7 +62,7 @@ git clone https://github.com/zabirarkam27/gadget-aid.git
 cd gadget-aid
 ```
 
-Create a `.env` in each application using its `.env.example` as a reference. Preserve existing credentials when configuring an existing checkout.
+Create a `.env` in each application using the [client example](gadget-aid-client/.env.example) and [server example](gadget-aid-server/.env.example) as references. Preserve existing credentials when configuring an existing checkout.
 
 | Application | Configuration |
 | --- | --- |
