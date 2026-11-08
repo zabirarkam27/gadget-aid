@@ -83,14 +83,10 @@ const visibleServices = async (db, services) => {
     db.accountControls.find({ _id: { $in: uids } }).toArray(),
     db.entityControls.find({ _id: { $in: keys } }).toArray(),
   ]);
-  return services.filter((s) =>
-    isAvailable(
-      s,
-      new Map(grants.map((v) => [v._id, v])),
-      new Map(accounts.map((v) => [v._id, v])),
-      new Map(controls.map((v) => [v._id, v])),
-    ),
-  );
+  const grantMap = new Map(grants.map((v) => [v._id, v])),
+    accountMap = new Map(accounts.map((v) => [v._id, v])),
+    controlMap = new Map(controls.map((v) => [v._id, v]));
+  return services.filter(s => isAvailable(s, grantMap, accountMap, controlMap));
 };
 const assertBookable = async (db, service) => {
   const grants = new Map(),

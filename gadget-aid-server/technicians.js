@@ -460,13 +460,17 @@ const createTechnicians = ({ collections, clock }) => {
     const id = idValue(req.params.id),
       db = await database();
     let profile = await db.technicians.findOne({ _id: id });
-    const all = await visibleServices(
-      db,
-      await db.services.find({ deletedAt: null }).toArray(),
-    );
-    let offered = all.filter(
-      (service) => technicianId(service.providerEmail || "") === String(id),
-    );
+    require("./listings").input(req.query, ["limit", "servicesCursor", "reviewsCursor"]);
+    const { visiblePage } = require("./visible-page");
+    // technicianId is server-derived and backfilled by the catalogue maintenance command.
+    // Canonical identity/role checks still run after the indexed lookup.
+    const servicePage = await visiblePage({ collection: db.services,
+      filter: { deletedAt: null, technicianId: String(id) },
+      query: { limit: req.query.limit, cursor: req.query.servicesCursor }, scope: `technician-services:${id}`,
+      validate: async rows => (await visibleServices(db, rows)).filter(service =>
+        technicianId(service.providerEmail || "") === String(id) && (!profile || serviceOwner(service, { email: profile.ownerEmail, uid: profile.ownerUid }))),
+    });
+    let offered = servicePage.items;
     if (!profile) {
       if (!offered.length) fail(404, "Technician not found.", "NOT_FOUND");
       const first = offered[0];
@@ -498,8 +502,10 @@ const createTechnicians = ({ collections, clock }) => {
         uid: profile.ownerUid,
       }),
     );
-    const { visibleReviews, publicReview } = require("./reviews");
-    const reviews = await visibleReviews(db, String(id));
+    const { reviewPage, publicReview } = require("./reviews");
+    const reviewSample = await reviewPage(db, String(id), {}, 100);
+    const firstReviews = await reviewPage(db, String(id), { limit: req.query.limit, cursor: req.query.reviewsCursor });
+    const reviews = reviewSample.items;
     const sum = reviews.reduce((n, r) => n + r.rating, 0);
     res.json({
       ...publicProfile(profile),
@@ -516,7 +522,12 @@ const createTechnicians = ({ collections, clock }) => {
           bookable: value.bookable,
         };
       }),
-      reviews: reviews.map(publicReview),
+      servicesNextCursor: servicePage.nextCursor,
+      reviews: firstReviews.items.map(publicReview),
+      reviewsNextCursor: firstReviews.nextCursor,
+      ratingSampleSize: reviews.length,
+      ratingHasMore: !!reviewSample.nextCursor,
+      ratingBasis: "Up to 100 most recent verified reviews; not a lifetime total.",
       reviewCount: reviews.length,
       averageRating: reviews.length
         ? Number((sum / reviews.length).toFixed(2))

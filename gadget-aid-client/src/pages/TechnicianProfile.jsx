@@ -37,7 +37,10 @@ const Profile = ({ id }) => {
     [notice, setNotice] = useState(""),
     [failure, setFailure] = useState(""),
     [saving, setSaving] = useState(false),
-    [responses, setResponses] = useState({});
+    [responses, setResponses] = useState({}),
+    [pageBusy, setPageBusy] = useState(""),
+    [pageError, setPageError] = useState("");
+  const pageRequests = useRef(new Set()), pageLock = useRef(false), pageGeneration = useRef(0);
   const lock = useRef(false),
     alive = useRef(true);
   useEffect(() => {
@@ -49,6 +52,13 @@ const Profile = ({ id }) => {
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
+    pageGeneration.current++;
+    const pending = pageRequests.current;
+    for (const request of pending) request.abort();
+    pending.clear();
+    pageLock.current = false;
+    setPageBusy("");
+    setPageError("");
     fetch(`${API_URL}/technicians/${id}`, { signal: controller.signal })
       .then(readJson)
       .then((value) => {
@@ -63,8 +73,30 @@ const Profile = ({ id }) => {
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
-    return () => controller.abort();
+    return () => { controller.abort(); for (const request of pending) request.abort(); pending.clear(); };
   }, [id, attempt]);
+  const loadMore = async kind => {
+    const cursor = profile?.[`${kind}NextCursor`];
+    if (!cursor || pageLock.current || loading) return;
+    pageLock.current = true;
+    setPageBusy(kind);
+    setPageError("");
+    const controller = new AbortController(), generation = pageGeneration.current;
+    pageRequests.current.add(controller);
+    try {
+      const value = await fetch(`${API_URL}/technicians/${id}?${kind}Cursor=${encodeURIComponent(cursor)}`, { signal: controller.signal }).then(readJson);
+      if (!Array.isArray(value[kind])) throw Error("This page could not be loaded.");
+      if (!controller.signal.aborted && generation === pageGeneration.current) setProfile(previous => ({
+        ...previous, [kind]: [...new Map([...previous[kind], ...value[kind]].map(row => [row._id, row])).values()],
+        [`${kind}NextCursor`]: value[`${kind}NextCursor`],
+      }));
+    } catch (error) {
+      if (!controller.signal.aborted && generation === pageGeneration.current) setPageError(error.message);
+    } finally {
+      pageRequests.current.delete(controller);
+      if (!controller.signal.aborted && generation === pageGeneration.current) { pageLock.current = false; setPageBusy(""); }
+    }
+  };
   useEffect(() => {
     const controller = new AbortController();
     setSelfId("");
@@ -160,7 +192,7 @@ const Profile = ({ id }) => {
                 <SaveTechnician serviceId={profile.services?.[0]?._id}/>
                 <p className="font-semibold">
                   {profile.reviewCount
-                    ? `${profile.averageRating} / 5 · ${profile.reviewCount} verified completed-booking review${profile.reviewCount === 1 ? "" : "s"}`
+                    ? `${profile.averageRating} / 5 · ${profile.reviewCount} verified review${profile.reviewCount === 1 ? "" : "s"} in the recent sample${profile.ratingHasMore ? "; more reviews available" : ""}`
                     : "No completed-booking reviews yet"}
                 </p>
                 {selfId === id && (
@@ -287,6 +319,8 @@ const Profile = ({ id }) => {
               ) : (
                 <p className="ga-muted">No active services listed.</p>
               )}
+              {profile.servicesNextCursor && <Button variant="outline" loading={pageBusy === "services"} disabled={loading || !!pageBusy} onClick={() => loadMore("services")}>Load more services</Button>}
+              {pageError && <p role="alert" className="text-error">{pageError}</p>}
             </section>
             <section className="space-y-5">
               <div className="flex flex-wrap gap-4 items-center justify-between">
@@ -302,7 +336,7 @@ const Profile = ({ id }) => {
                 </Button>
               </div>
               <p className="text-sm ga-muted">
-                One review per eligible booking. Provider responses are
+                Rating uses up to 100 most recent verified reviews, not a lifetime total. One review per eligible booking. Provider responses are
                 identified separately. Reporting sends a private moderation
                 request and does not remove ratings automatically.
               </p>
@@ -400,6 +434,7 @@ const Profile = ({ id }) => {
                   No eligible completed repairs have been reviewed yet.
                 </p>
               )}
+              {profile.reviewsNextCursor && <Button variant="outline" loading={pageBusy === "reviews"} disabled={loading || !!pageBusy} onClick={() => loadMore("reviews")}>Load more reviews</Button>}
             </section>
           </div>
         )

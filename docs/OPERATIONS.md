@@ -1,5 +1,19 @@
 # Platform operations
 
+## Catalogue scaling maintenance
+
+Service writes maintain server-derived technician IDs and numeric catalogue sort keys. The maintenance command updates only these derived fields, uses 200-record batches with concurrent-edit checks, and builds named non-unique indexes idempotently. It never changes listing prices, ownership, bookings or roles. Use existing ignored server environment credentials; no keys belong in command arguments or logs.
+
+1. Run `npm run catalogue:scale -- prepare` from `gadget-aid-server` before publishing the new profile lookup code. This backfills existing services and builds indexes without activating persisted sorting.
+2. Deploy the backend that maintains derived fields on every service write; refresh local backend processes too.
+3. Run `npm run catalogue:scale -- activate`. This repeats the safe backfill and indexes, then sets the `catalogue-index-v1` readiness checkpoint. Failed/conflicting updates do not activate an initial migration; resolve concurrent edits and rerun. Never activate while an old backend still accepts listing writes.
+
+Catalogue requests use the checkpoint to select indexed sort keys; an unmigrated database retains legacy computed sorting. An already-open catalogue cursor may need a filter reset after activation. To roll back only indexed sorting, set that checkpoint's state to `paused`; retain the derived fields and indexes so technician lookups continue working. Do not remove fields or indexes during rollback.
+
+Default public technician pages contain at most 12 services and 12 reviews, with independent cursors. Reviews validate canonical bookings/services in batches, never one lookup per review. Candidate scanning stops at 1,000 records/request and returns a continuation when more remain, even if a page has no visible rows. Ratings describe a bounded sample of up to 100 recent verified reviews, not lifetime totals. No ratings are cached across moderation/restriction changes.
+
+`npm run test:mongo` includes an isolated 5,000-listing/2,500-review query-plan test, migration rerun and cursor checks. This validates indexed page access, not deployment-wide concurrent-user capacity. Literal substring/area search remains a residual filter, and private booking summaries still aggregate matching bookings; investigate those query plans and use a dedicated search/read model if their workload grows. MongoDB pools are capped at 10 connections per backend instance with a 5-second queue timeout; instance count still multiplies total connections.
+
 ## Roles
 
 Public visitors browse services and technician information. Signed-in customers manage their own records. Approved Technicians manage their own listings, schedules and repairs. Admins handle platform operations and Technician approval. Only Super Admins can grant or revoke Admin access; Super Admin access itself is controlled by a trusted server operator.

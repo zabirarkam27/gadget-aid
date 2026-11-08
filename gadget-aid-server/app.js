@@ -251,10 +251,12 @@ const createApp = ({
       ...fields,
       providerUid: req.user.uid,
       providerEmail: req.user.email,
+      technicianId: require("./identities").technicianId(req.user.email),
       providerName: req.user.name || "Service provider",
       providerPhoto: req.user.photo,
       createdAt: clock(),
     };
+    Object.assign(record, require("./catalogue-fields").catalogueFields(record));
     const result = await services.insertOne(record);
     res.status(201).json({ acknowledged: true, insertedId: result.insertedId });
   });
@@ -284,7 +286,7 @@ const createApp = ({
     };
     const result = await services.updateOne(
       { _id: id, deletedAt: null },
-      { $set: { ...fields, updatedAt: clock() } },
+      { $set: { ...fields, ...require("./catalogue-fields").catalogueFields({ ...service, ...fields }), updatedAt: clock() } },
     );
     res.json({
       acknowledged: true,

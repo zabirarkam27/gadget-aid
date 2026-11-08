@@ -21,6 +21,11 @@ if (!getApps().length)
 const client = new MongoClient(
   `mongodb+srv://${encodeURIComponent(process.env.DB_USER || "")}:${encodeURIComponent(process.env.DB_PASSWORD || "")}@cluster0.cuvfj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`,
   {
+    maxPoolSize: 10,
+    minPoolSize: 0,
+    maxIdleTimeMS: 60000,
+    waitQueueTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 10000,
     serverApi: {
       version: ServerApiVersion.v1,
       strict: true,

@@ -82,6 +82,7 @@ const matches = (row, query) =>
           (row[key] instanceof ObjectId ? String(row[key]) : row[key]) <
             (value.$lt instanceof ObjectId ? String(value.$lt) : value.$lt)
         );
+      if ("$type" in value) return value.$type === "date" && row[key] instanceof Date;
       if ("$exists" in value) return Object.hasOwn(row, key) === value.$exists;
       if ("$in" in value)
         return value.$in.some((item) =>
@@ -255,19 +256,23 @@ const createFixture = ({
     ...serviceFields,
     providerUid: users.provider.uid,
     providerEmail: users.provider.email,
+    technicianId: require("../identities").technicianId(users.provider.email),
     providerName: users.provider.name,
     providerPhoto: null,
     createdAt: fixedTime,
     updatedAt: fixedTime,
   };
+  Object.assign(service, require("../catalogue-fields").catalogueFields(service));
   const otherService = {
     ...service,
     _id: new ObjectId(ids.otherService),
     name: "Phone display repair",
     providerUid: users.other.uid,
     providerEmail: users.other.email,
+    technicianId: require("../identities").technicianId(users.other.email),
     providerName: users.other.name,
   };
+  Object.assign(otherService, require("../catalogue-fields").catalogueFields(otherService));
   const booking = {
     _id: new ObjectId(ids.booking),
     serviceId: ids.service,
@@ -275,6 +280,7 @@ const createFixture = ({
     serviceImage: service.image,
     providerUid: users.provider.uid,
     providerEmail: users.provider.email,
+    technicianId: require("../identities").technicianId(users.provider.email),
     providerName: users.provider.name,
     userUid: users.customer.uid,
     userEmail: users.customer.email,

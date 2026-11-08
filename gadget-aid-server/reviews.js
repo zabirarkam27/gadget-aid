@@ -30,56 +30,36 @@ const publicReview = (row) => ({
     ? { text: row.response.text, createdAt: row.response.createdAt }
     : null,
 });
-const visibleReviews = async (db, id) => {
-  const control = await db.entityControls.findOne({ _id: `technician:${id}` });
-  if (
-    control?.state === "restricted" ||
-    control?.accountRestricted ||
-    control?.roleRevoked
-  )
-    return [];
-  const rows = await db.reviews
-      .find({ technicianId: id, moderationState: "published" })
-      .toArray(),
-    valid = [];
-  for (const row of rows) {
-    if (
-      row.reviewVersion !== 1 ||
-      !(row.createdAt instanceof Date) ||
-      String(row._id) !== hash(`review-v1:${row.bookingId}`) ||
-      !Number.isInteger(row.rating) ||
-      row.rating < 1 ||
-      row.rating > 5
-    )
-      continue;
-    const booking = await db.bookings.findOne({ _id: idValue(row.bookingId) });
-    if (!booking) continue;
-    let service;
-    try {
-      service = await db.services.findOne({
-        _id: idValue(String(booking.serviceId)),
-      });
-    } catch {
-      continue;
-    }
-    if (
-      !service ||
-      technicianId(service.providerEmail) !== id ||
-      row.providerUid !== (service.providerUid || null) ||
-      !completionVerified(booking, service) ||
-      row.customerEmail !== booking.userEmail ||
-      (booking.userUid && row.customerUid !== booking.userUid) ||
-      row.customerEmail === service.providerEmail
-    )
-      continue;
-    valid.push(row);
-  }
-  return valid.sort(
-    (a, b) =>
-      new Date(b.createdAt) - new Date(a.createdAt) ||
-      String(b._id).localeCompare(String(a._id)),
-  );
+const validateReviews = async (db, id, rows) => {
+  const candidates = rows.filter(row => row.reviewVersion === 1 && row.createdAt instanceof Date &&
+    typeof row.bookingId === "string" && /^[a-f0-9]{24}$/i.test(row.bookingId) &&
+    String(row._id) === hash(`review-v1:${row.bookingId}`) && Number.isInteger(row.rating) && row.rating >= 1 && row.rating <= 5);
+  if (!candidates.length) return [];
+  const bookings = await db.bookings.find({ _id: { $in: candidates.map(row => idValue(row.bookingId)) } }, { maxTimeMS: 5000 }).toArray();
+  const byBooking = new Map(bookings.map(row => [String(row._id), row]));
+  const serviceIds = [...new Set(bookings.map(row => String(row.serviceId)).filter(id => /^[a-f0-9]{24}$/i.test(id)))];
+  const services = await db.services.find({ _id: { $in: serviceIds.map(idValue) } }, { maxTimeMS: 5000 }).toArray();
+  const byService = new Map(services.map(row => [String(row._id), row]));
+  return candidates.filter(row => {
+    const booking = byBooking.get(row.bookingId), service = booking && byService.get(String(booking.serviceId));
+    return service && technicianId(service.providerEmail) === id &&
+      row.providerUid === (service.providerUid || null) && completionVerified(booking, service) &&
+      row.customerEmail === booking.userEmail && (!booking.userUid || row.customerUid === booking.userUid) &&
+      row.customerEmail !== service.providerEmail;
+  });
 };
+const reviewPage = async (db, id, query = {}, limit = 12) => {
+  const { visiblePage } = require("./visible-page");
+  const control = await db.entityControls.findOne({ _id: `technician:${id}` });
+  // Validate the cursor even for a restricted provider, without exposing their rows.
+  return visiblePage({ collection: db.reviews,
+    filter: { technicianId: id, moderationState: "published", reviewVersion: 1, createdAt: { $type: "date" } },
+    query, limit, dated: true, scope: `technician-reviews:${id}`,
+    validate: rows => control?.state === "restricted" || control?.accountRestricted || control?.roleRevoked
+      ? Promise.resolve([]) : validateReviews(db, id, rows),
+  });
+};
+const visibleReviews = async (db, id) => (await reviewPage(db, id, {}, 100)).items;
 const moderateReview = async (
   db,
   { reviewId, action, reason, actor },
@@ -252,10 +232,11 @@ const createReviews = ({ collections, clock }) => {
     res.status(201).json(publicReview(record));
   };
   const list = async (req, res) => {
+    require("./listings").input(req.query, ["paged", "limit", "cursor"]);
     const id = String(idValue(req.params.id)),
       db = await database(),
-      reviews = await visibleReviews(db, id);
-    res.json(reviews.map(publicReview));
+      page = await reviewPage(db, id, req.query, req.query.paged === "1" ? 12 : 100);
+    res.json(req.query.paged === "1" ? { ...page, items: page.items.map(publicReview) } : page.items.map(publicReview));
   };
   const response = async (req, res) => {
     checkKeys(req.body, ["text"]);
@@ -342,6 +323,7 @@ module.exports = {
   publicReview,
   createReviews,
   visibleReviews,
+  reviewPage,
   completionVerified,
   moderateReview,
 };

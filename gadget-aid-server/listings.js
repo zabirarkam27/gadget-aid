@@ -22,9 +22,11 @@ const listPage = async ({ collection, filter, query, scope, visible = async (row
   const sort = query.sort || "newest";
   if (!["newest", "low", "high"].includes(sort) || (!price && sort !== "newest"))
     fail(400, "Choose a valid sort order.", "VALIDATION_ERROR");
-  const signature = createHash("sha256").update(JSON.stringify([scope, filter, sort, query.maxPrice || ""], (_, value) => value instanceof RegExp ? String(value) : value)).digest("hex").slice(0, 24);
+  const indexed = typeof collection.catalogueIndexed === "function" ? await collection.catalogueIndexed() : !!collection.catalogueIndexed;
+  const missingKey = indexed ? (sort === "newest" ? "catalogueDateMissing" : "cataloguePriceMissing") : "listMissing";
+  const signature = createHash("sha256").update(JSON.stringify([scope, filter, sort, query.maxPrice || "", indexed], (_, value) => value instanceof RegExp ? String(value) : value)).digest("hex").slice(0, 24);
   const direction = sort === "low" ? 1 : -1;
-  const key = sort === "newest" ? "listDate" : "listPrice";
+  const key = indexed ? (sort === "newest" ? "catalogueDate" : "cataloguePrice") : sort === "newest" ? "listDate" : "listPrice";
   let after = null;
   if (query.cursor) {
     try {
@@ -34,20 +36,20 @@ const listPage = async ({ collection, filter, query, scope, visible = async (row
       after = { id: idValue(cursor.id), value: cursor.value, missing: cursor.missing };
     } catch { fail(400, "This page cursor is invalid. Reset the filters.", "INVALID_CURSOR"); }
   }
-  const cursorFor = (row) => Buffer.from(JSON.stringify({ scope: signature, id: String(row._id), value: row[key], missing: row.listMissing })).toString("base64url");
+  const cursorFor = (row) => Buffer.from(JSON.stringify({ scope: signature, id: String(row._id), value: row[key], missing: row[missingKey] })).toString("base64url");
   const items = [];
   let lastScanned = null, exhausted = false;
   for (let scanned = 0; scanned < 1000 && items.length <= limit;) {
     const boundary = after ? { $or: [
-      { listMissing: { $gt: after.missing } },
-      { listMissing: after.missing, [key]: { [direction === 1 ? "$gt" : "$lt"]: after.value } },
-      { listMissing: after.missing, [key]: after.value, _id: { $lt: after.id } },
+      { [missingKey]: { $gt: after.missing } },
+      { [missingKey]: after.missing, [key]: { [direction === 1 ? "$gt" : "$lt"]: after.value } },
+      { [missingKey]: after.missing, [key]: after.value, _id: { $lt: after.id } },
     ] } : {};
-    const batchSize = Math.min(100, limit + 1 - items.length);
+    const batchSize = Math.min(100, limit + 1 - items.length, 1000 - scanned);
     const rows = await collection.aggregate([
       ...prefix,
       { $match: filter },
-      { $set: {
+      ...(!indexed ? [{ $set: {
         listDate: { $convert: { input: { $convert: { input: { $ifNull: ["$createdAt", "$_id"] }, to: "date", onError: null, onNull: null } }, to: "long", onError: 0, onNull: 0 } },
         listPrice: { $convert: { input: "$price", to: "double", onError: null, onNull: null } },
       } },
@@ -58,15 +60,16 @@ const listPage = async ({ collection, filter, query, scope, visible = async (row
       ] }, { $round: ["$listPrice", 2] }, null] } } },
       ...(query.maxPrice ? [{ $match: { listPrice: { $ne: null, $gte: 0, $lte: Number(query.maxPrice) } } }] : []),
       { $set: { listMissing: sort === "newest" ? 0 : { $cond: [{ $eq: ["$listPrice", null] }, 1, 0] }, listPrice: { $ifNull: ["$listPrice", 0] } } },
+      ] : query.maxPrice ? [{ $match: { cataloguePriceMissing: 0, cataloguePrice: { $lte: Number(query.maxPrice) } } }] : []),
       { $match: boundary },
-      { $sort: { listMissing: 1, [key]: direction, _id: -1 } },
+      { $sort: { [missingKey]: 1, [key]: direction, _id: -1 } },
       { $limit: batchSize },
     ], { maxTimeMS: 5000 }).toArray();
     if (!rows.length) { exhausted = true; break; }
     scanned += rows.length;
     items.push(...await visible(rows));
     lastScanned = rows.at(-1);
-    after = { id: lastScanned._id, value: lastScanned[key], missing: lastScanned.listMissing };
+    after = { id: lastScanned._id, value: lastScanned[key], missing: lastScanned[missingKey] };
     if (rows.length < batchSize) { exhausted = true; break; }
   }
   const more = items.length > limit;

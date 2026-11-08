@@ -54,6 +54,9 @@ const createDatabase = (client, databaseName = "gadgetAidDB") => {
       }),
     );
   const db = bind();
+  // A maintenance checkpoint enables persisted sort keys only after backfill/indexes.
+  // No index builds or collection migrations run inside a request.
+  db.services.catalogueIndexed = async () => !!(await db.operationMeta.findOne({ _id: "catalogue-index-v1", state: "ready" }));
   db.transaction = (work) =>
     client.withSession((session) =>
       session.withTransaction(() => work(bind(session)), {

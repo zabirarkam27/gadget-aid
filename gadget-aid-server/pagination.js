@@ -77,7 +77,7 @@ const pageDocs = async (
     }
   }
   const rows = await collection
-    .find(selector, projection ? { projection } : {})
+    .find(selector, { ...(projection ? { projection } : {}), maxTimeMS: 5000 })
     .sort({ _id: -1 })
     .limit(limit + 1)
     .toArray();
